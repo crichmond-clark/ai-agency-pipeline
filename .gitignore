@@ -3,3 +3,6 @@ node_modules
 .env
 .env*.local
 payload-types.ts
+
+__pycache__
+*.py[cod]
