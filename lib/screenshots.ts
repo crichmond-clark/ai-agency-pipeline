@@ -1,7 +1,8 @@
 import { chromium, type ViewportSize } from 'playwright'
 
 type ScreenshotResult = {
-  dataUrl: string
+  buffer: Buffer
+  contentType: 'image/png'
   capturedAt: string
   viewport: ViewportSize
 }
@@ -26,7 +27,8 @@ async function captureViewport(browser: Awaited<ReturnType<typeof chromium.launc
   await page.close()
 
   return {
-    dataUrl: `data:image/png;base64,${buffer.toString('base64')}`,
+    buffer,
+    contentType: 'image/png',
     capturedAt: new Date().toISOString(),
     viewport,
   }

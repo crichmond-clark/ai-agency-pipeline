@@ -283,7 +283,7 @@ Done when: a public demo URL renders from database content.
 Commits:
 
 - [x] Add Playwright screenshot capture in the Next.js/Payload app.
-- [x] Store desktop/mobile screenshots in the saved QA report payload. Media upload storage can replace this later if object storage is added.
+- [x] Store desktop/mobile screenshots in Cloudflare R2 and save public screenshot URLs in the saved QA report payload.
 - [x] Add deterministic QA checks in the Next.js/Payload app.
 - [x] Add AI QA review prompt in the Python AI Service.
 - [x] Combine deterministic and AI QA results into one saved QA report.
@@ -395,7 +395,7 @@ Use these skills deliberately during the build:
 ## 12. Open Questions
 
 - Payload Auth from the start is decided; implementation still needs exact access-control rules and admin route shape.
-- Should screenshots be stored via Payload media/local storage or object storage for the first demo?
+- Screenshots are stored in Cloudflare R2 using S3-compatible signed PUT requests, with public URLs saved in each Demo Site QA report.
 - Which AI model should be used for cost/quality balance?
 - First real leads are CSV imported from business-finder; sample leads are still needed for portfolio mode.
 - What domain/subdomain will host public demo pages?
