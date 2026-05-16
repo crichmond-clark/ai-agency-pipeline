@@ -1,7 +1,35 @@
+from app.llm import LlmNotConfigured, generate_structured_object
 from app.schemas import DemoContent, DemoContentRequest
 
 
+SYSTEM_PROMPT = """
+You generate safe structured demo homepage content for unofficial local-business concept mockups.
+Return JSON only matching the requested schema.
+Rules:
+- Use verified facts and generic industry language only.
+- Do not present assumptions as factual claims.
+- No testimonials, reviews, ratings, certification badges, team claims, before/after claims, or scraped image/logo references.
+- The footer_disclaimer must clearly say the site is unofficial and for demonstration purposes.
+""".strip()
+
+
 def generate_demo_content(request: DemoContentRequest) -> DemoContent:
+    try:
+        return generate_structured_object(
+            schema=DemoContent,
+            task_name="demo_content",
+            system_prompt=SYSTEM_PROMPT,
+            user_payload={
+                "lead": request.lead.model_dump(),
+                "business_profile": request.profile.model_dump(),
+                "json_schema": DemoContent.model_json_schema(),
+            },
+        )
+    except LlmNotConfigured:
+        return deterministic_demo_content(request)
+
+
+def deterministic_demo_content(request: DemoContentRequest) -> DemoContent:
     lead = request.lead
     profile = request.profile
     business_name = lead.business_name or "Your Local Service Team"

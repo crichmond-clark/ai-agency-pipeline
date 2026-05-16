@@ -1,7 +1,28 @@
+from app.llm import LlmNotConfigured, generate_structured_object
 from app.schemas import AiQaReport, QaRequest
 
 
+SYSTEM_PROMPT = """
+You review demo site content for factual, ethical, and outreach-safety risks.
+Return JSON only matching the requested schema.
+Mark status failed when content lacks an unofficial demonstration disclaimer or includes fake claims.
+Use findings severity values: info, warning, error.
+""".strip()
+
+
 def review_demo_page(request: QaRequest) -> AiQaReport:
+    try:
+        return generate_structured_object(
+            schema=AiQaReport,
+            task_name="qa",
+            system_prompt=SYSTEM_PROMPT,
+            user_payload={"demo_url": request.demo_url, "content": request.content.model_dump(), "json_schema": AiQaReport.model_json_schema()},
+        )
+    except LlmNotConfigured:
+        return deterministic_qa(request)
+
+
+def deterministic_qa(request: QaRequest) -> AiQaReport:
     findings = []
     disclaimer = request.content.footer_disclaimer.lower()
 

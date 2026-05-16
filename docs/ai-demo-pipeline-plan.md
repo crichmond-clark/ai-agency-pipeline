@@ -260,6 +260,7 @@ Commits:
 
 - [x] Add AI Service client in the Payload/Next app.
 - [x] Add Python FastAPI AI Service endpoints for structured business profile and demo content generation.
+- [x] Add env-driven AI provider selection for deterministic fallback, OpenCode Go, ZAI, OpenRouter, OpenAI, and custom OpenAI-compatible endpoints.
 - [x] Validate AI Service output with Pydantic before returning and Zod before Payload saves or renders it.
 - [x] Require explicit Demo Creation Approval before generating/saving structured business profile, recorded with `demo_creation_approved_at` and `demo_creation_approved_by`.
 - [x] Generate/save homepage content JSON.
@@ -396,7 +397,7 @@ Use these skills deliberately during the build:
 
 - Payload Auth from the start is decided; implementation still needs exact access-control rules and admin route shape.
 - Screenshots are stored in Cloudflare R2 using S3-compatible signed PUT requests, with public URLs saved in each Demo Site QA report.
-- Which AI model should be used for cost/quality balance?
+- AI model/provider is env-driven. Supported presets: `opencode-go`, `zai`, `openrouter`, `openai`, `openai-compatible`, and `deterministic` fallback. Per-task model overrides are available with `AI_PROFILE_MODEL`, `AI_DEMO_CONTENT_MODEL`, `AI_QA_MODEL`, and `AI_OUTREACH_MODEL`.
 - First real leads are CSV imported from business-finder; sample leads are still needed for portfolio mode.
 - What domain/subdomain will host public demo pages?
 - What is the minimum acceptable QA pass threshold before human review?
