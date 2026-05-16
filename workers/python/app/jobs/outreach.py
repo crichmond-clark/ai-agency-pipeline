@@ -20,6 +20,7 @@ def generate_outreach_draft(request: OutreachDraftRequest) -> OutreachDraft:
             task_name="outreach",
             system_prompt=SYSTEM_PROMPT,
             user_payload={"lead": request.lead.model_dump(), "demo_url": request.demo_url, "json_schema": OutreachDraft.model_json_schema()},
+            ai_config=request.ai_config,
         )
     except LlmNotConfigured:
         return deterministic_outreach_draft(request)

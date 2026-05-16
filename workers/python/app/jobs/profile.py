@@ -20,6 +20,7 @@ def generate_business_profile(request: ProfileRequest) -> BusinessProfile:
             task_name="profile",
             system_prompt=SYSTEM_PROMPT,
             user_payload={"lead": request.lead.model_dump(), "json_schema": BusinessProfile.model_json_schema()},
+            ai_config=request.ai_config,
         )
         profile.raw_profile = {**(profile.raw_profile or {}), "generator": "llm"}
         return profile

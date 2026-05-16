@@ -1,7 +1,8 @@
 import config from '@payload-config'
 import { getPayload, type PayloadRequest } from 'payload'
 
-import { type LeadInput, requestDemoContent } from '@/lib/ai-service-client'
+import { AiServiceError, type LeadInput, requestDemoContent } from '@/lib/ai-service-client'
+import { isResponse, resolveAiSelectionForRequest, withAiMetadata } from '@/lib/ai-route'
 import { demoSlugForLead } from '@/lib/slugify'
 import { selectTemplate } from '@/lib/template-selector'
 import { recordWorkflowRun } from '@/lib/workflow'
@@ -14,6 +15,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ lea
 
   const { leadId } = await params
   const startedAt = new Date().toISOString()
+  const aiSelection = await resolveAiSelectionForRequest(payload, request, 'demo_content')
+  if (isResponse(aiSelection)) return aiSelection
 
   try {
     const lead = await payload.findByID({ collection: 'leads', id: leadId })
@@ -22,7 +25,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ lea
     if (!profileDoc) return Response.json({ error: 'Business Profile is required' }, { status: 409 })
 
     const profile = BusinessProfileSchema.parse(profileDoc)
-    const content = await requestDemoContent({ lead: lead as LeadInput, profile })
+    const content = await requestDemoContent({ lead: lead as LeadInput, profile }, aiSelection)
     const existingDemoSites = await payload.find({ collection: 'demo-sites', where: { lead: { equals: lead.id } }, limit: 1, sort: '-updatedAt' })
     const template = selectTemplate()
     const demoSiteData = {
@@ -38,11 +41,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ lea
       : await payload.create({ collection: 'demo-sites', data: demoSiteData })
 
     await payload.update({ collection: 'leads', id: lead.id, data: { pipeline_status: 'demo_ready' } })
-    await recordWorkflowRun(payload, { operation: 'demo_content_generation', status: 'succeeded', lead: lead.id, demo_site: demoSite.id, started_at: startedAt, summary: 'Demo content generated and demo site saved', metadata: { demo_url: `/demo/${demoSite.slug}` } })
+    await recordWorkflowRun(payload, { operation: 'demo_content_generation', status: 'succeeded', lead: lead.id, demo_site: demoSite.id, started_at: startedAt, summary: 'Demo content generated and demo site saved', metadata: withAiMetadata(aiSelection, { demo_url: `/demo/${demoSite.slug}` }) })
 
     return Response.json({ demo_site: demoSite, content })
   } catch (error) {
-    await recordWorkflowRun(payload, { operation: 'demo_content_generation', status: 'failed', lead: leadId, started_at: startedAt, error: error instanceof Error ? error.message : 'Unknown demo content generation error' })
-    return Response.json({ error: 'Demo content generation failed' }, { status: 400 })
+    const message = error instanceof Error ? error.message : 'Unknown demo content generation error'
+    const category = error instanceof AiServiceError ? error.category : 'validation_failed'
+    await recordWorkflowRun(payload, { operation: 'demo_content_generation', status: 'failed', lead: leadId, started_at: startedAt, error: message, metadata: withAiMetadata(aiSelection, { error_category: category }) })
+    return Response.json({ error: message, category }, { status: 400 })
   }
 }

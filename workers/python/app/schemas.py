@@ -13,8 +13,14 @@ class LeadInput(BaseModel):
     source_payload: dict[str, Any] | None = None
 
 
+class AiConfig(BaseModel):
+    provider: str | None = None
+    model: str | None = None
+
+
 class ProfileRequest(BaseModel):
     lead: LeadInput
+    ai_config: AiConfig | None = None
 
 
 class Service(BaseModel):
@@ -47,6 +53,7 @@ class BusinessProfile(BaseModel):
 class DemoContentRequest(BaseModel):
     lead: LeadInput
     profile: BusinessProfile
+    ai_config: AiConfig | None = None
 
 
 class Hero(BaseModel):
@@ -79,6 +86,7 @@ class DemoContent(BaseModel):
 class QaRequest(BaseModel):
     demo_url: str
     content: DemoContent
+    ai_config: AiConfig | None = None
 
 
 class QaFinding(BaseModel):
@@ -95,9 +103,20 @@ class AiQaReport(BaseModel):
 class OutreachDraftRequest(BaseModel):
     lead: LeadInput
     demo_url: str
+    ai_config: AiConfig | None = None
 
 
 class OutreachDraft(BaseModel):
     subject: str
     body: str
     safety_notes: str
+
+
+class ModelCatalogRequest(BaseModel):
+    provider: str
+
+
+class ModelCatalogResponse(BaseModel):
+    provider: str
+    models: list[str]
+    warning: str | None = None

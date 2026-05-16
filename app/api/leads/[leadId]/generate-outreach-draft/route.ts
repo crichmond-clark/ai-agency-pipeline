@@ -1,7 +1,8 @@
 import config from '@payload-config'
 import { getPayload, type PayloadRequest } from 'payload'
 
-import { type LeadInput, requestOutreachDraft } from '@/lib/ai-service-client'
+import { AiServiceError, type LeadInput, requestOutreachDraft } from '@/lib/ai-service-client'
+import { isResponse, resolveAiSelectionForRequest, withAiMetadata } from '@/lib/ai-route'
 import { recordWorkflowRun } from '@/lib/workflow'
 
 export async function POST(request: Request, { params }: { params: Promise<{ leadId: string }> }) {
@@ -11,6 +12,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ lea
 
   const { leadId } = await params
   const startedAt = new Date().toISOString()
+  const aiSelection = await resolveAiSelectionForRequest(payload, request, 'outreach')
+  if (isResponse(aiSelection)) return aiSelection
 
   try {
     const lead = await payload.findByID({ collection: 'leads', id: leadId })
@@ -22,13 +25,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ lea
     if (!demoSite) return Response.json({ error: 'Available demo site is required' }, { status: 409 })
 
     const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? new URL(request.url).origin
-    const draft = await requestOutreachDraft({ lead: lead as LeadInput, demo_url: `${baseUrl}/demo/${demoSite.slug}` })
+    const draft = await requestOutreachDraft({ lead: lead as LeadInput, demo_url: `${baseUrl}/demo/${demoSite.slug}` }, aiSelection)
     const outreach = await payload.create({ collection: 'outreach-messages', data: { lead: lead.id, demo_site: demoSite.id, status: 'draft', ...draft } })
-    await recordWorkflowRun(payload, { operation: 'outreach_generation', status: 'succeeded', lead: lead.id, demo_site: demoSite.id, outreach_message: outreach.id, started_at: startedAt, summary: 'Outreach draft generated' })
+    await recordWorkflowRun(payload, { operation: 'outreach_generation', status: 'succeeded', lead: lead.id, demo_site: demoSite.id, outreach_message: outreach.id, started_at: startedAt, summary: 'Outreach draft generated', metadata: withAiMetadata(aiSelection) })
 
     return Response.json({ outreach_message: outreach })
   } catch (error) {
-    await recordWorkflowRun(payload, { operation: 'outreach_generation', status: 'failed', lead: leadId, started_at: startedAt, error: error instanceof Error ? error.message : 'Unknown outreach generation error' })
-    return Response.json({ error: 'Outreach draft generation failed' }, { status: 400 })
+    const message = error instanceof Error ? error.message : 'Unknown outreach generation error'
+    const category = error instanceof AiServiceError ? error.category : 'validation_failed'
+    await recordWorkflowRun(payload, { operation: 'outreach_generation', status: 'failed', lead: leadId, started_at: startedAt, error: message, metadata: withAiMetadata(aiSelection, { error_category: category }) })
+    return Response.json({ error: message, category }, { status: 400 })
   }
 }

@@ -1,0 +1,3 @@
+# Admin-selectable AI models with environment-held secrets
+
+Admin Users can choose non-secret AI provider/model defaults in Payload AI Settings and override provider/model per run from a minimal dashboard UI, while all provider API keys and provider base URLs remain server-side environment configuration. Payload/Next resolves the selected provider/model and records provenance on Workflow Runs; the Python AI Service remains the only service that calls providers, refreshes model catalogs, and validates structured outputs. This splits convenience from secret management: the frontend can change day-to-day model selection without exposing credentials or moving AI provider logic out of the Python service boundary.

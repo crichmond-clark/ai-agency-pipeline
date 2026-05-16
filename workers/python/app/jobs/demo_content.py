@@ -24,6 +24,7 @@ def generate_demo_content(request: DemoContentRequest) -> DemoContent:
                 "business_profile": request.profile.model_dump(),
                 "json_schema": DemoContent.model_json_schema(),
             },
+            ai_config=request.ai_config,
         )
     except LlmNotConfigured:
         return deterministic_demo_content(request)

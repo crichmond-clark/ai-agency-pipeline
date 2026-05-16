@@ -17,6 +17,7 @@ def review_demo_page(request: QaRequest) -> AiQaReport:
             task_name="qa",
             system_prompt=SYSTEM_PROMPT,
             user_payload={"demo_url": request.demo_url, "content": request.content.model_dump(), "json_schema": AiQaReport.model_json_schema()},
+            ai_config=request.ai_config,
         )
     except LlmNotConfigured:
         return deterministic_qa(request)
