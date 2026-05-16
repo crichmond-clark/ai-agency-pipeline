@@ -2,7 +2,8 @@ from fastapi import FastAPI
 
 from app.jobs.demo_content import generate_demo_content
 from app.jobs.profile import generate_business_profile
-from app.schemas import BusinessProfile, DemoContent, DemoContentRequest, ProfileRequest
+from app.jobs.qa import review_demo_page
+from app.schemas import AiQaReport, BusinessProfile, DemoContent, DemoContentRequest, ProfileRequest, QaRequest
 
 app = FastAPI(title="AI Demo Pipeline Service")
 
@@ -20,3 +21,8 @@ def profile(request: ProfileRequest) -> BusinessProfile:
 @app.post("/demo-content", response_model=DemoContent)
 def demo_content(request: DemoContentRequest) -> DemoContent:
     return generate_demo_content(request)
+
+
+@app.post("/qa", response_model=AiQaReport)
+def qa(request: QaRequest) -> AiQaReport:
+    return review_demo_page(request)

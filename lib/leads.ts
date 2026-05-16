@@ -2,7 +2,8 @@ import type { Payload } from 'payload'
 
 import type { CsvRow } from './csv'
 
-const websiteStatuses = new Set(['no_site', 'social_only', 'third_party_platform', 'broken', 'live', 'unknown'])
+const websiteStatuses = ['no_site', 'social_only', 'third_party_platform', 'broken', 'live', 'unknown'] as const
+type WebsiteStatus = (typeof websiteStatuses)[number]
 
 type ImportResult = { created: number; updated: number }
 
@@ -18,7 +19,7 @@ export async function importBusinessFinderRows(payload: Payload, rows: CsvRow[])
       await payload.update({ collection: 'leads', id: existingId, data: sourceUpdateData(row, data) })
       updated += 1
     } else {
-      await payload.create({ collection: 'leads', data: { ...data, source_payload: row, source_imported_at: new Date().toISOString() } })
+      await payload.create({ collection: 'leads', draft: false, data: { ...data, source_payload: row, source_imported_at: new Date().toISOString() } })
       created += 1
     }
   }
@@ -42,8 +43,14 @@ function mapLeadRow(row: CsvRow) {
     website_url: pick(row, 'website', 'website_url', 'url'),
     google_place_id: pick(row, 'place_id', 'google_place_id') || undefined,
     lead_source: 'business-finder-csv',
-    website_status: websiteStatuses.has(websiteStatus) ? websiteStatus : 'unknown',
+    website_status: isWebsiteStatus(websiteStatus) ? websiteStatus : 'unknown',
+    pipeline_status: 'new' as const,
+    sales_status: 'not_contacted' as const,
   }
+}
+
+function isWebsiteStatus(value: string): value is WebsiteStatus {
+  return (websiteStatuses as readonly string[]).includes(value)
 }
 
 function sourceUpdateData(row: CsvRow, data: ReturnType<typeof mapLeadRow>) {

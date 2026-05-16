@@ -282,12 +282,12 @@ Done when: a public demo URL renders from database content.
 
 Commits:
 
-- [ ] Add Playwright screenshot capture in the Next.js/Payload app.
-- [ ] Store desktop/mobile screenshots.
-- [ ] Add deterministic QA checks in the Next.js/Payload app.
-- [ ] Add AI QA review prompt in the Python AI Service.
-- [ ] Combine deterministic and AI QA results into one saved QA report.
-- [ ] Show QA report in review dashboard.
+- [x] Add Playwright screenshot capture in the Next.js/Payload app.
+- [x] Store desktop/mobile screenshots in the saved QA report payload. Media upload storage can replace this later if object storage is added.
+- [x] Add deterministic QA checks in the Next.js/Payload app.
+- [x] Add AI QA review prompt in the Python AI Service.
+- [x] Combine deterministic and AI QA results into one saved QA report.
+- [x] Show QA report in Payload admin via the Demo Site `qa_report` field.
 
 Done when: each demo has screenshots and a pass/fail QA report.
 

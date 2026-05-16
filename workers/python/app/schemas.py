@@ -74,3 +74,19 @@ class DemoContent(BaseModel):
     service_area: str
     contact_cta: ContactCta
     footer_disclaimer: str
+
+
+class QaRequest(BaseModel):
+    demo_url: str
+    content: DemoContent
+
+
+class QaFinding(BaseModel):
+    severity: str
+    message: str
+
+
+class AiQaReport(BaseModel):
+    status: str
+    findings: list[QaFinding] = Field(default_factory=list)
+    summary: str

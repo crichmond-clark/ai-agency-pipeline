@@ -1,4 +1,4 @@
-import { BusinessProfileSchema, DemoContentSchema, type BusinessProfilePayload, type DemoContentPayload } from '@/types/ai'
+import { AiQaReportSchema, BusinessProfileSchema, DemoContentSchema, type AiQaReportPayload, type BusinessProfilePayload, type DemoContentPayload } from '@/types/ai'
 
 export type LeadInput = {
   business_name?: string
@@ -21,6 +21,11 @@ export async function requestBusinessProfile(lead: LeadInput): Promise<BusinessP
 export async function requestDemoContent(input: { lead: LeadInput; profile: BusinessProfilePayload }): Promise<DemoContentPayload> {
   const response = await postJson('/demo-content', input)
   return DemoContentSchema.parse(response)
+}
+
+export async function requestAiQa(input: { demo_url: string; content: DemoContentPayload }): Promise<AiQaReportPayload> {
+  const response = await postJson('/qa', input)
+  return AiQaReportSchema.parse(response)
 }
 
 async function postJson(path: string, body: unknown): Promise<unknown> {
