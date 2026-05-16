@@ -295,12 +295,12 @@ Done when: each demo has screenshots and a pass/fail QA report.
 
 Commits:
 
-- [ ] Add approve/reject/regenerate actions.
-- [ ] Add outreach draft copy generation via the Python AI Service.
-- [ ] Add editable outreach preview.
-- [ ] Add Resend client and admin-triggered send action.
-- [ ] Enforce send-button blocking rules.
-- [ ] Add simple status transitions for contacted/replied/won/lost.
+- [x] Add approve/reject actions. Regenerate currently reuses the existing generation endpoints.
+- [x] Add outreach draft copy generation via the Python AI Service.
+- [x] Add editable outreach preview via Payload `outreach_messages` records and reviewed marker endpoint.
+- [x] Add Resend client and admin-triggered send action.
+- [x] Enforce send-button blocking rules.
+- [x] Add simple status transitions for contacted/replied/won/lost.
 
 Done when: a lead can be generated, reviewed, approved, and sent one outreach email only after explicit admin confirmation.
 

@@ -1,7 +1,7 @@
 import type { Payload } from 'payload'
 
 export async function recordWorkflowRun(payload: Payload, data: {
-  operation: 'profile_generation' | 'demo_content_generation' | 'screenshot_capture' | 'qa_check'
+  operation: 'profile_generation' | 'demo_content_generation' | 'screenshot_capture' | 'qa_check' | 'outreach_generation' | 'outreach_send'
   status: 'started' | 'succeeded' | 'failed'
   lead?: string | number
   demo_site?: string | number

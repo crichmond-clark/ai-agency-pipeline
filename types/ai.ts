@@ -16,6 +16,12 @@ export const AiQaReportSchema = z.object({
   summary: z.string().min(1),
 })
 
+export const OutreachDraftSchema = z.object({
+  subject: z.string().min(1),
+  body: z.string().min(1),
+  safety_notes: z.string().min(1),
+})
+
 export const DemoContentSchema = z.object({
   hero: z.object({ eyebrow: z.string(), headline: z.string(), subheadline: z.string(), cta: z.string() }),
   services: z.array(z.object({ title: z.string(), description: z.string() })).min(1),
@@ -28,3 +34,4 @@ export const DemoContentSchema = z.object({
 export type AiQaReportPayload = z.infer<typeof AiQaReportSchema>
 export type BusinessProfilePayload = z.infer<typeof BusinessProfileSchema>
 export type DemoContentPayload = z.infer<typeof DemoContentSchema>
+export type OutreachDraftPayload = z.infer<typeof OutreachDraftSchema>

@@ -90,3 +90,14 @@ class AiQaReport(BaseModel):
     status: str
     findings: list[QaFinding] = Field(default_factory=list)
     summary: str
+
+
+class OutreachDraftRequest(BaseModel):
+    lead: LeadInput
+    demo_url: str
+
+
+class OutreachDraft(BaseModel):
+    subject: str
+    body: str
+    safety_notes: str

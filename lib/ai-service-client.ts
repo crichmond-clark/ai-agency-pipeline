@@ -1,4 +1,4 @@
-import { AiQaReportSchema, BusinessProfileSchema, DemoContentSchema, type AiQaReportPayload, type BusinessProfilePayload, type DemoContentPayload } from '@/types/ai'
+import { AiQaReportSchema, BusinessProfileSchema, DemoContentSchema, OutreachDraftSchema, type AiQaReportPayload, type BusinessProfilePayload, type DemoContentPayload, type OutreachDraftPayload } from '@/types/ai'
 
 export type LeadInput = {
   business_name?: string
@@ -26,6 +26,11 @@ export async function requestDemoContent(input: { lead: LeadInput; profile: Busi
 export async function requestAiQa(input: { demo_url: string; content: DemoContentPayload }): Promise<AiQaReportPayload> {
   const response = await postJson('/qa', input)
   return AiQaReportSchema.parse(response)
+}
+
+export async function requestOutreachDraft(input: { lead: LeadInput; demo_url: string }): Promise<OutreachDraftPayload> {
+  const response = await postJson('/outreach-draft', input)
+  return OutreachDraftSchema.parse(response)
 }
 
 async function postJson(path: string, body: unknown): Promise<unknown> {
