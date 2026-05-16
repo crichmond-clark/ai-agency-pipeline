@@ -262,7 +262,7 @@ Commits:
 - [x] Add Python FastAPI AI Service endpoints for structured business profile and demo content generation.
 - [x] Validate AI Service output with Pydantic before returning and Zod before Payload saves or renders it.
 - [x] Require explicit Demo Creation Approval before generating/saving structured business profile, recorded with `demo_creation_approved_at` and `demo_creation_approved_by`.
-- [ ] Generate/save homepage content JSON. Current route returns validated content and records it in Workflow Run metadata; Demo Site persistence is Phase 3.
+- [x] Generate/save homepage content JSON.
 - [x] Show generated data and recent Workflow Runs in Payload admin or custom review page.
 
 Done when: a lead can move from `new` to `profile_ready` with usable demo content saved.
@@ -271,10 +271,10 @@ Done when: a lead can move from `new` to `profile_ready` with usable demo conten
 
 Commits:
 
-- [ ] Add `HomeServicesTemplate`.
-- [ ] Add `/demo/[slug]` route.
-- [ ] Add slug creation and demo site records.
-- [ ] Add noindex metadata and footer disclaimer.
+- [x] Add `HomeServicesTemplate`.
+- [x] Add `/demo/[slug]` route.
+- [x] Add slug creation and demo site records.
+- [x] Add noindex metadata and footer disclaimer.
 
 Done when: a public demo URL renders from database content.
 

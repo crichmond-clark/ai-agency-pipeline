@@ -2,6 +2,8 @@ import config from '@payload-config'
 import { getPayload, type PayloadRequest } from 'payload'
 
 import { type LeadInput, requestDemoContent } from '@/lib/ai-service-client'
+import { demoSlugForLead } from '@/lib/slugify'
+import { selectTemplate } from '@/lib/template-selector'
 import { recordWorkflowRun } from '@/lib/workflow'
 import { BusinessProfileSchema } from '@/types/ai'
 
@@ -21,10 +23,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ lea
 
     const profile = BusinessProfileSchema.parse(profileDoc)
     const content = await requestDemoContent({ lead: lead as LeadInput, profile })
-    await payload.update({ collection: 'leads', id: lead.id, data: { pipeline_status: 'demo_content_ready' } })
-    await recordWorkflowRun(payload, { operation: 'demo_content_generation', status: 'succeeded', lead: lead.id, started_at: startedAt, summary: 'Demo content generated', metadata: { content } })
+    const existingDemoSites = await payload.find({ collection: 'demo-sites', where: { lead: { equals: lead.id } }, limit: 1, sort: '-updatedAt' })
+    const template = selectTemplate()
+    const demoSiteData = {
+      lead: lead.id,
+      business_profile: profileDoc.id,
+      template,
+      slug: existingDemoSites.docs[0]?.slug ?? demoSlugForLead(lead),
+      content,
+      is_public: true,
+    }
+    const demoSite = existingDemoSites.docs[0]
+      ? await payload.update({ collection: 'demo-sites', id: existingDemoSites.docs[0].id, data: demoSiteData })
+      : await payload.create({ collection: 'demo-sites', data: demoSiteData })
 
-    return Response.json({ content })
+    await payload.update({ collection: 'leads', id: lead.id, data: { pipeline_status: 'demo_ready' } })
+    await recordWorkflowRun(payload, { operation: 'demo_content_generation', status: 'succeeded', lead: lead.id, demo_site: demoSite.id, started_at: startedAt, summary: 'Demo content generated and demo site saved', metadata: { demo_url: `/demo/${demoSite.slug}` } })
+
+    return Response.json({ demo_site: demoSite, content })
   } catch (error) {
     await recordWorkflowRun(payload, { operation: 'demo_content_generation', status: 'failed', lead: leadId, started_at: startedAt, error: error instanceof Error ? error.message : 'Unknown demo content generation error' })
     return Response.json({ error: 'Demo content generation failed' }, { status: 400 })
