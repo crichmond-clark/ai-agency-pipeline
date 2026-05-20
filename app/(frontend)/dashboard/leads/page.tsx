@@ -1,9 +1,11 @@
 import config from '@payload-config'
-import type React from 'react'
-import Link from 'next/link'
 import { headers } from 'next/headers'
 import { getPayload, type PayloadRequest, type Where } from 'payload'
 
+import { AppShell } from '@/components/dashboard/AppShell'
+import { FilterBar } from '@/components/dashboard/FilterBar'
+import { LeadTable } from '@/components/dashboard/LeadTable'
+import { Alert } from '@/components/ui/alert'
 import { ImportLeadsForm } from './ImportLeadsForm'
 
 export const dynamic = 'force-dynamic'
@@ -20,7 +22,7 @@ type SearchParams = {
 export default async function DashboardLeadsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const payload = await getPayload({ config })
   const auth = await payload.auth({ canSetHeaders: false, headers: await headers(), req: { payload } as PayloadRequest })
-  if (!auth.user) return <main><h1>Unauthorized</h1></main>
+  if (!auth.user) return <main className="p-8"><Alert variant="destructive">Unauthorized</Alert></main>
 
   const params = await searchParams
   const filters = buildFilters(params)
@@ -34,52 +36,13 @@ export default async function DashboardLeadsPage({ searchParams }: { searchParam
   }))
 
   return (
-    <main style={{ padding: 32 }}>
-      <h1>Lead dashboard</h1>
-      <ImportLeadsForm />
-      <form style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-        <FilterSelect label="Pipeline" name="pipeline_status" options={pipelineStatuses} value={params.pipeline_status} />
-        <FilterSelect label="Sales" name="sales_status" options={salesStatuses} value={params.sales_status} />
-        <label>
-          Demo approved
-          <select defaultValue={params.demo_creation_approved ?? ''} name="demo_creation_approved">
-            <option value="">Any</option>
-            <option value="yes">Approved</option>
-            <option value="no">Not approved</option>
-          </select>
-        </label>
-        <button type="submit">Filter</button>
-        <Link href="/dashboard/leads">Clear</Link>
-      </form>
-      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-        <thead>
-          <tr>
-            <Header>Business</Header>
-            <Header>City</Header>
-            <Header>Pipeline</Header>
-            <Header>Sales</Header>
-            <Header>Demo approved</Header>
-            <Header>Latest demo</Header>
-            <Header>Latest workflow</Header>
-            <Header>Review</Header>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(({ lead, demoSite, workflowRun }) => (
-            <tr key={lead.id}>
-              <Cell>{lead.business_name}</Cell>
-              <Cell>{lead.city ?? '—'}</Cell>
-              <Cell>{lead.pipeline_status}</Cell>
-              <Cell>{lead.sales_status}</Cell>
-              <Cell>{lead.demo_creation_approved_at ? 'yes' : 'no'}</Cell>
-              <Cell>{demoSite ? <Link href={`/demo/${demoSite.slug}`}>{demoSite.slug}</Link> : '—'}</Cell>
-              <Cell>{workflowRun ? `${workflowRun.operation}: ${workflowRun.status}${workflowRun.error ? ` — ${workflowRun.error}` : ''}` : '—'}</Cell>
-              <Cell><Link href={`/dashboard/review/${lead.id}`}>Review</Link></Cell>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </main>
+    <AppShell description="Import leads, filter by workflow state, and open the focused review screen for each business." title="Lead dashboard">
+      <div className="grid gap-6">
+        <ImportLeadsForm />
+        <FilterBar pipelineStatuses={pipelineStatuses} salesStatuses={salesStatuses} values={params} />
+        <LeadTable rows={rows} />
+      </div>
+    </AppShell>
   )
 }
 
@@ -90,24 +53,4 @@ function buildFilters(params: SearchParams): Where | undefined {
   if (params.demo_creation_approved === 'yes') and.push({ demo_creation_approved_at: { exists: true } })
   if (params.demo_creation_approved === 'no') and.push({ demo_creation_approved_at: { exists: false } })
   return and.length ? { and } : undefined
-}
-
-function FilterSelect({ label, name, options, value }: { label: string; name: string; options: string[]; value?: string }) {
-  return (
-    <label>
-      {label}
-      <select defaultValue={value ?? ''} name={name}>
-        <option value="">Any</option>
-        {options.map((option) => <option key={option} value={option}>{option}</option>)}
-      </select>
-    </label>
-  )
-}
-
-function Header({ children }: { children: React.ReactNode }) {
-  return <th style={{ borderBottom: '1px solid #ddd', padding: 8, textAlign: 'left' }}>{children}</th>
-}
-
-function Cell({ children }: { children: React.ReactNode }) {
-  return <td style={{ borderBottom: '1px solid #eee', padding: 8, verticalAlign: 'top' }}>{children}</td>
 }

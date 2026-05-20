@@ -1,7 +1,13 @@
 'use client'
 
+import { Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
+
+import { Alert } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 
 type ImportResult = {
   created: number
@@ -53,17 +59,19 @@ export function ImportLeadsForm() {
   }
 
   return (
-    <section style={{ border: '1px solid #ddd', borderRadius: 8, marginBottom: 24, padding: 16 }}>
-      <h2 style={{ marginTop: 0 }}>Import leads from CSV</h2>
-      <p style={{ color: '#555', marginTop: 0 }}>
-        Upload a business-finder CSV. Existing leads are updated by Google place ID, or by business name + city when no place ID exists.
-      </p>
-      <form onSubmit={handleSubmit} style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-        <input accept=".csv,text/csv" disabled={isImporting} ref={fileInputRef} type="file" />
-        <button disabled={isImporting} type="submit">{isImporting ? 'Importing…' : 'Import leads'}</button>
-      </form>
-      {message ? <p style={{ color: 'green', marginBottom: 0 }}>{message}</p> : null}
-      {error ? <p style={{ color: 'crimson', marginBottom: 0 }}>{error}</p> : null}
-    </section>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Upload className="h-5 w-5 text-blue-400" /> Import leads from CSV</CardTitle>
+        <CardDescription>Upload a business-finder CSV. Existing leads update by Google place ID, or business name + city when no place ID exists.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <form className="grid gap-3 sm:grid-cols-[1fr_auto]" onSubmit={handleSubmit}>
+          <Input accept=".csv,text/csv" disabled={isImporting} ref={fileInputRef} type="file" />
+          <Button disabled={isImporting} type="submit">{isImporting ? 'Importing…' : 'Import leads'}</Button>
+        </form>
+        {message ? <Alert variant="success">{message}</Alert> : null}
+        {error ? <Alert variant="destructive">{error}</Alert> : null}
+      </CardContent>
+    </Card>
   )
 }
