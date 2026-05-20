@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { getPayload, type PayloadRequest, type Where } from 'payload'
 
+import { ImportLeadsForm } from './ImportLeadsForm'
+
 export const dynamic = 'force-dynamic'
 
 const pipelineStatuses = ['new', 'profile_ready', 'demo_content_ready', 'demo_ready', 'qa_failed', 'needs_review', 'approved', 'rejected']
@@ -34,6 +36,7 @@ export default async function DashboardLeadsPage({ searchParams }: { searchParam
   return (
     <main style={{ padding: 32 }}>
       <h1>Lead dashboard</h1>
+      <ImportLeadsForm />
       <form style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
         <FilterSelect label="Pipeline" name="pipeline_status" options={pipelineStatuses} value={params.pipeline_status} />
         <FilterSelect label="Sales" name="sales_status" options={salesStatuses} value={params.sales_status} />
