@@ -1,7 +1,15 @@
 import type { CollectionConfig } from 'payload'
 
+import { authenticated } from '@/lib/access'
+
 export const BusinessProfiles: CollectionConfig = {
   slug: 'business-profiles',
+  access: {
+    create: authenticated,
+    read: authenticated,
+    update: authenticated,
+    delete: authenticated,
+  },
   admin: { useAsTitle: 'lead' },
   fields: [
     { name: 'lead', type: 'relationship', relationTo: 'leads', required: true, unique: true },

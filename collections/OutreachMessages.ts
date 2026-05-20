@@ -1,7 +1,15 @@
 import type { CollectionConfig } from 'payload'
 
+import { authenticated } from '@/lib/access'
+
 export const OutreachMessages: CollectionConfig = {
   slug: 'outreach-messages',
+  access: {
+    create: authenticated,
+    read: authenticated,
+    update: authenticated,
+    delete: authenticated,
+  },
   admin: { useAsTitle: 'subject', defaultColumns: ['subject', 'lead', 'status', 'reviewed_at'] },
   fields: [
     { name: 'lead', type: 'relationship', relationTo: 'leads', required: true },

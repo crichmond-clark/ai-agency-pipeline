@@ -1,7 +1,15 @@
 import type { CollectionConfig } from 'payload'
 
+import { authenticated } from '@/lib/access'
+
 export const WorkflowRuns: CollectionConfig = {
   slug: 'workflow-runs',
+  access: {
+    create: authenticated,
+    read: authenticated,
+    update: authenticated,
+    delete: authenticated,
+  },
   admin: { useAsTitle: 'operation', defaultColumns: ['operation', 'status', 'lead', 'started_at', 'finished_at'] },
   fields: [
     { name: 'operation', type: 'select', options: ['csv_import', 'profile_generation', 'demo_content_generation', 'demo_site_creation', 'screenshot_capture', 'qa_check', 'outreach_generation', 'outreach_send'], required: true },

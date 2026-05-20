@@ -1,7 +1,15 @@
 import type { CollectionConfig } from 'payload'
 
+import { authenticated } from '@/lib/access'
+
 export const ContactAttempts: CollectionConfig = {
   slug: 'contact-attempts',
+  access: {
+    create: authenticated,
+    read: authenticated,
+    update: authenticated,
+    delete: authenticated,
+  },
   admin: { useAsTitle: 'channel', defaultColumns: ['lead', 'channel', 'sent_at', 'provider_message_id'] },
   fields: [
     { name: 'lead', type: 'relationship', relationTo: 'leads', required: true },

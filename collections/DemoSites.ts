@@ -1,7 +1,15 @@
 import type { CollectionConfig } from 'payload'
 
+import { authenticated } from '@/lib/access'
+
 export const DemoSites: CollectionConfig = {
   slug: 'demo-sites',
+  access: {
+    create: authenticated,
+    read: authenticated,
+    update: authenticated,
+    delete: authenticated,
+  },
   admin: { useAsTitle: 'slug', defaultColumns: ['slug', 'lead', 'template', 'is_public', 'expires_at'] },
   fields: [
     { name: 'lead', type: 'relationship', relationTo: 'leads', required: true },

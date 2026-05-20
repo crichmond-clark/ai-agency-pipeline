@@ -13,6 +13,7 @@ import { OutreachMessages } from './collections/OutreachMessages'
 import { Users } from './collections/Users'
 import { WorkflowRuns } from './collections/WorkflowRuns'
 import { AiSettings } from './globals/AiSettings'
+import { requiredEnv } from './lib/env'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -24,8 +25,8 @@ export default buildConfig({
   },
   collections: [Users, Leads, BusinessProfiles, DemoSites, OutreachMessages, ContactAttempts, WorkflowRuns, Media],
   globals: [AiSettings],
-  db: postgresAdapter({ pool: { connectionString: process.env.DATABASE_URI ?? '' } }),
+  db: postgresAdapter({ pool: { connectionString: requiredEnv('DATABASE_URI') } }),
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET ?? '',
+  secret: requiredEnv('PAYLOAD_SECRET'),
   typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
 })
