@@ -19,7 +19,8 @@ export type QaReport = {
   checked_at: string
 }
 
-export function runDeterministicQa(demoSite: DemoSiteForQa): QaReport {
+export function runDeterministicQa(input: unknown): QaReport {
+  const demoSite = toDemoSiteForQa(input)
   let content: DemoContentPayload | null = null
   const checks: QaCheck[] = []
 
@@ -36,5 +37,15 @@ export function runDeterministicQa(demoSite: DemoSiteForQa): QaReport {
     status: checks.every((check) => check.passed) ? 'passed' : 'failed',
     deterministic: checks,
     checked_at: new Date().toISOString(),
+  }
+}
+
+function toDemoSiteForQa(input: unknown): DemoSiteForQa {
+  if (!input || typeof input !== 'object') return {}
+  const demoSite = input as DemoSiteForQa
+  return {
+    slug: demoSite.slug,
+    content: demoSite.content,
+    is_public: demoSite.is_public,
   }
 }

@@ -1,6 +1,7 @@
 import config from '@payload-config'
 import { getPayload, type PayloadRequest } from 'payload'
 
+import { isDemoSiteAvailable } from '@/lib/demo-availability'
 import { isR2Configured, uploadBufferToR2 } from '@/lib/r2-storage'
 import { captureDemoScreenshots } from '@/lib/screenshots'
 import { recordWorkflowRun } from '@/lib/workflow'
@@ -15,6 +16,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ dem
 
   try {
     const demoSite = await payload.findByID({ collection: 'demo-sites', id: demoSiteId })
+    if (!isDemoSiteAvailable(demoSite)) return Response.json({ error: 'Available demo site is required for screenshot capture' }, { status: 409 })
     const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? new URL(request.url).origin
     if (!isR2Configured()) return Response.json({ error: 'Cloudflare R2 storage is not configured' }, { status: 500 })
 

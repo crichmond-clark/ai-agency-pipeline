@@ -3,6 +3,7 @@ import { getPayload, type PayloadRequest } from 'payload'
 
 import { AiServiceError, type LeadInput, requestOutreachDraft } from '@/lib/ai-service-client'
 import { isResponse, resolveAiSelectionForRequest, withAiMetadata } from '@/lib/ai-route'
+import { isDemoSiteAvailable } from '@/lib/demo-availability'
 import { recordWorkflowRun } from '@/lib/workflow'
 
 export async function POST(request: Request, { params }: { params: Promise<{ leadId: string }> }) {
@@ -20,8 +21,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ lea
     if (lead.pipeline_status !== 'approved') return Response.json({ error: 'Lead must be approved before outreach draft generation' }, { status: 409 })
     if (lead.do_not_contact_at) return Response.json({ error: 'Lead is marked do not contact' }, { status: 409 })
 
-    const demos = await payload.find({ collection: 'demo-sites', where: { and: [{ lead: { equals: lead.id } }, { is_public: { equals: true } }, { removed_at: { exists: false } }] }, limit: 1, sort: '-updatedAt' })
-    const demoSite = demos.docs[0]
+    const demos = await payload.find({ collection: 'demo-sites', where: { and: [{ lead: { equals: lead.id } }, { is_public: { equals: true } }, { removed_at: { exists: false } }] }, limit: 5, sort: '-updatedAt' })
+    const demoSite = demos.docs.find((demo) => isDemoSiteAvailable(demo))
     if (!demoSite) return Response.json({ error: 'Available demo site is required' }, { status: 409 })
 
     const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? new URL(request.url).origin

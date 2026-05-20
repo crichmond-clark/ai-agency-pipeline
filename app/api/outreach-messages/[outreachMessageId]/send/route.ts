@@ -3,6 +3,7 @@ import { getPayload, type PayloadRequest } from 'payload'
 
 import { sendOutreachEmail } from '@/lib/resend'
 import { recordWorkflowRun } from '@/lib/workflow'
+import { getSendBlockReason } from '@/lib/workflow-guards'
 
 export async function POST(request: Request, { params }: { params: Promise<{ outreachMessageId: string }> }) {
   const payload = await getPayload({ config })
@@ -34,18 +35,3 @@ export async function POST(request: Request, { params }: { params: Promise<{ out
   }
 }
 
-type SendGuardLead = { pipeline_status?: string | null; sales_status?: string | null; do_not_contact_at?: string | null; email?: string | null }
-type SendGuardOutreach = { status?: string | null; sent_at?: string | null }
-type SendGuardDemoSite = { is_public?: boolean | null; removed_at?: string | null } | null
-
-function getSendBlockReason({ lead, outreach, demoSite }: { lead: SendGuardLead; outreach: SendGuardOutreach; demoSite: SendGuardDemoSite }) {
-  if (process.env.PORTFOLIO_MODE === 'true') return 'Sending is disabled in portfolio mode'
-  if (lead.pipeline_status !== 'approved') return 'Lead must be approved'
-  if (lead.sales_status !== 'not_contacted') return 'Lead has already been contacted'
-  if (lead.do_not_contact_at) return 'Lead is marked do not contact'
-  if (!lead.email) return 'Lead email is required'
-  if (outreach.status !== 'reviewed') return 'Outreach message must be reviewed before sending'
-  if (outreach.sent_at) return 'Outreach message was already sent'
-  if (!demoSite || !demoSite.is_public || demoSite.removed_at) return 'Available public demo site is required'
-  return null
-}

@@ -20,7 +20,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ lea
     if (!lead.demo_creation_approved_at) return Response.json({ error: 'Demo Creation Approval is required' }, { status: 409 })
 
     const profile = await requestBusinessProfile(lead as LeadInput, aiSelection)
-    const savedProfile = await payload.create({ collection: 'business-profiles', data: { lead: lead.id, ...profile } })
+    const existingProfiles = await payload.find({ collection: 'business-profiles', where: { lead: { equals: lead.id } }, limit: 1 })
+    const savedProfile = existingProfiles.docs[0]
+      ? await payload.update({ collection: 'business-profiles', id: existingProfiles.docs[0].id, data: { lead: lead.id, ...profile } })
+      : await payload.create({ collection: 'business-profiles', data: { lead: lead.id, ...profile } })
     await payload.update({ collection: 'leads', id: lead.id, data: { pipeline_status: 'profile_ready' } })
     await recordWorkflowRun(payload, { operation: 'profile_generation', status: 'succeeded', lead: lead.id, started_at: startedAt, summary: 'Business profile generated', metadata: withAiMetadata(aiSelection) })
 
