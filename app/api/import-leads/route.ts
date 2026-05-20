@@ -20,10 +20,11 @@ export async function POST(request: Request) {
     })
     return Response.json(result)
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown import error'
     await payload.create({
       collection: 'workflow-runs',
-      data: { operation: 'csv_import', status: 'failed', started_at: startedAt, finished_at: new Date().toISOString(), error: error instanceof Error ? error.message : 'Unknown import error' },
+      data: { operation: 'csv_import', status: 'failed', started_at: startedAt, finished_at: new Date().toISOString(), error: message },
     })
-    return Response.json({ error: 'Import failed' }, { status: 400 })
+    return Response.json({ error: message }, { status: 400 })
   }
 }

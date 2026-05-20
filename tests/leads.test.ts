@@ -57,6 +57,25 @@ describe('business finder import', () => {
     expect(payload.leads[0].pipeline_status).toBe('new')
     expect(payload.leads[0].sales_status).toBe('not_contacted')
   })
+
+  it('treats exported None values as empty fields', async () => {
+    const payload = fakePayload()
+
+    await importBusinessFinderRows(payload as unknown as Payload, [{ name: 'No Email Business', city: 'York', email: 'None', website_url: 'None' }])
+
+    expect(payload.leads[0].email).toBe('')
+    expect(payload.leads[0].website_url).toBe('')
+  })
+
+  it('rejects files without lead rows', async () => {
+    await expect(importBusinessFinderRows(fakePayload() as unknown as Payload, [])).rejects.toThrow('CSV has no lead rows')
+  })
+
+  it('rejects rows without business names', async () => {
+    await expect(importBusinessFinderRows(fakePayload() as unknown as Payload, [{ query: 'plumbers in Plymouth', city: 'Plymouth' }])).rejects.toThrow(
+      'Row 1 is missing business_name, name, or title',
+    )
+  })
 })
 
 function matchesWhere(lead: StoredLead, where: Record<string, unknown> | undefined): boolean {
