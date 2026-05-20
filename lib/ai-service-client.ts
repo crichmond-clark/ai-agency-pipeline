@@ -1,5 +1,6 @@
 import { AiQaReportSchema, BusinessProfileSchema, DemoContentSchema, OutreachDraftSchema, type AiQaReportPayload, type BusinessProfilePayload, type DemoContentPayload, type OutreachDraftPayload } from '@/types/ai'
 import type { AiSelection } from '@/lib/ai-provider-options'
+import { requiredEnv } from '@/lib/env'
 
 export type LeadInput = {
   business_name?: string
@@ -43,7 +44,10 @@ export async function requestOutreachDraft(input: { lead: LeadInput; demo_url: s
 export async function postAiServiceJson(path: string, body: unknown): Promise<unknown> {
   const response = await fetch(`${AI_SERVICE_URL}${path}`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      authorization: `Bearer ${requiredEnv('AI_SERVICE_TOKEN')}`,
+      'content-type': 'application/json',
+    },
     body: JSON.stringify(body),
   })
 

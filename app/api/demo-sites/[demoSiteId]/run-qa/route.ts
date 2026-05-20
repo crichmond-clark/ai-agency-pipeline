@@ -2,6 +2,7 @@ import config from '@payload-config'
 import { getPayload, type PayloadRequest } from 'payload'
 
 import { AiServiceError, requestAiQa } from '@/lib/ai-service-client'
+import { isDemoSiteAvailable } from '@/lib/demo-availability'
 import { isResponse, resolveAiSelectionForRequest, withAiMetadata } from '@/lib/ai-route'
 import { runDeterministicQa } from '@/lib/qa'
 import { recordWorkflowRun } from '@/lib/workflow'
@@ -19,6 +20,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ dem
 
   try {
     const demoSite = await payload.findByID({ collection: 'demo-sites', id: demoSiteId })
+    if (!isDemoSiteAvailable(demoSite)) return Response.json({ error: 'Available demo site is required for QA' }, { status: 409 })
     const deterministic = runDeterministicQa(demoSite)
     const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? new URL(request.url).origin
     const ai = await requestAiQa({ demo_url: `${baseUrl}/demo/${demoSite.slug}`, content: DemoContentSchema.parse(demoSite.content) }, aiSelection)

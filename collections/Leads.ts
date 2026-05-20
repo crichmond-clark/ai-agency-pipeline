@@ -1,11 +1,19 @@
 import type { CollectionConfig } from 'payload'
 
+import { authenticated } from '@/lib/access'
+
 const pipelineStatuses = ['new', 'profile_ready', 'demo_content_ready', 'demo_ready', 'qa_failed', 'needs_review', 'approved', 'rejected']
 const salesStatuses = ['not_contacted', 'contacted', 'replied', 'call_booked', 'won', 'lost']
 const websiteStatuses = ['no_site', 'social_only', 'third_party_platform', 'broken', 'live', 'unknown']
 
 export const Leads: CollectionConfig = {
   slug: 'leads',
+  access: {
+    create: authenticated,
+    read: authenticated,
+    update: authenticated,
+    delete: authenticated,
+  },
   admin: { useAsTitle: 'business_name', defaultColumns: ['business_name', 'city', 'website_status', 'pipeline_status', 'sales_status'] },
   fields: [
     { name: 'business_name', type: 'text', required: true },

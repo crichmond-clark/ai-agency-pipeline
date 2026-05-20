@@ -8,11 +8,14 @@ type WebsiteStatus = (typeof websiteStatuses)[number]
 type ImportResult = { created: number; updated: number }
 
 export async function importBusinessFinderRows(payload: Payload, rows: CsvRow[]): Promise<ImportResult> {
+  if (!rows.length) throw new Error('CSV has no lead rows')
+
   let created = 0
   let updated = 0
 
-  for (const row of rows) {
+  for (const [index, row] of rows.entries()) {
     const data = mapLeadRow(row)
+    if (!data.business_name) throw new Error(`Row ${index + 1} is missing business_name, name, or title`)
     const existingId = await findExistingLeadId(payload, data.google_place_id, data.normalized_business_name, data.city)
 
     if (existingId) {
@@ -85,7 +88,11 @@ async function findExistingLeadId(payload: Payload, googlePlaceId?: string, norm
 function pick(row: CsvRow, ...keys: string[]): string {
   for (const key of keys) {
     const value = row[key]?.trim()
-    if (value) return value
+    if (value && !isEmptyExportValue(value)) return value
   }
   return ''
+}
+
+function isEmptyExportValue(value: string): boolean {
+  return ['none', 'null', 'undefined', 'n/a', 'na'].includes(value.toLowerCase())
 }

@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 
 import { HomeServicesTemplate } from '@/components/demo-templates/HomeServicesTemplate'
+import { isDemoSiteAvailable } from '@/lib/demo-availability'
 import { DemoContentSchema } from '@/types/ai'
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ export default async function DemoPage({ params }: PageProps) {
   })
 
   const demoSite = result.docs[0]
-  if (!demoSite) notFound()
+  if (!demoSite || !isDemoSiteAvailable(demoSite)) notFound()
 
   const lead = typeof demoSite.lead === 'object' ? demoSite.lead : null
   if (!lead) notFound()

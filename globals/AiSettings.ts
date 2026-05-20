@@ -1,13 +1,14 @@
 import type { GlobalConfig } from 'payload'
 
+import { authenticated } from '@/lib/access'
 import { providerOptions } from '../lib/ai-provider-options'
 
 export const AiSettings: GlobalConfig = {
   slug: 'ai-settings',
   label: 'AI Settings',
   access: {
-    read: ({ req }) => Boolean(req.user),
-    update: ({ req }) => Boolean(req.user),
+    read: authenticated,
+    update: authenticated,
   },
   fields: [
     { name: 'default_provider', type: 'select', options: providerOptions, defaultValue: 'deterministic', required: true },
