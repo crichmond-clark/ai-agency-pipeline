@@ -307,6 +307,21 @@ Commits:
 
 Done when: a lead can be generated, reviewed, approved, and sent one outreach email only after explicit admin confirmation.
 
+### Post-review hardening — access, workflow guards, and tests
+
+Commits:
+
+- [x] Add explicit authenticated Payload access controls for Lead, Business Profile, Demo Site, Outreach Message, Contact Attempt, Workflow Run, Media, and User reads/updates/deletes.
+- [x] Add fail-fast environment validation for `DATABASE_URI`, `PAYLOAD_SECRET`, and AI service calls that require `AI_SERVICE_TOKEN`.
+- [x] Enforce Demo Availability consistently with public, removed, and expiry checks.
+- [x] Enforce server-side guards for final Approval, Outreach Draft review, and Send.
+- [x] Add service-to-service bearer token auth for the Python AI Service.
+- [x] Add unit tests for slugging, CSV import dedupe/update rules, deterministic QA, Demo Availability, and workflow guards.
+- [x] Add Python auth tests for AI Service protected endpoints.
+- [x] Add baseline Next.js security headers.
+
+Dependency audit note: `npm audit --audit-level=high` reports no high/critical issues, but 16 moderate transitive findings remain in Payload/Next-related dependencies. `npm audit fix --force` proposes breaking/downgrading changes, so those are documented rather than force-applied in this pass.
+
 ## 9. Testing Strategy
 
 Unit tests:
