@@ -1,4 +1,4 @@
-import { CheckCircle2, MapPin, Phone } from 'lucide-react'
+import { ArrowRight, CheckCircle2, MapPin, Phone } from 'lucide-react'
 
 import type { DemoContentPayload } from '@/types/ai'
 
@@ -10,95 +10,229 @@ type Props = {
   content: DemoContentPayload
 }
 
+type DisplayService = {
+  title: string
+  description: string
+}
+
+const internalCopyPatterns = [
+  /\bconcepts?\b/i,
+  /\bmockups?\b/i,
+  /\bdemos?\b/i,
+  /\btemplates?\b/i,
+  /\bgenerated\b/i,
+  /\blayouts?\b/i,
+  /\bwebsites?\b/i,
+  /\bhomepages?\b/i,
+  /\bpages?\b/i,
+  /\bonline home\b/i,
+  /\blead data\b/i,
+  /\bbusiness profile\b/i,
+  /\bservice information\b/i,
+  /\bcontact prompts?\b/i,
+  /\bservice-area messaging\b/i,
+]
+
+const processSteps = [
+  { title: 'Call or send an enquiry', body: 'Start with the job, property, or problem that needs attention.' },
+  { title: 'Talk through the details', body: 'Share the service needed, location, timing, and any useful context.' },
+  { title: 'Agree the next step', body: 'Use the contact details to arrange a quote, visit, or follow-up conversation.' },
+]
+
+const fallbackTrustReasons = [
+  'Straightforward contact details for local enquiries',
+  'Clear service areas and practical next steps',
+  'A simple way to discuss the job before booking',
+]
+
 export function HomeServicesTemplate({ businessName, city, phone, email, content }: Props) {
+  const contactHref = phone ? `tel:${phone}` : '#contact'
+  const fallbackArea = city ? `Serving ${city} and nearby areas.` : 'Serving the local area.'
+  const serviceArea = safeText(content.service_area, fallbackArea)
+  const serviceAreaLabel = city ? `Serving ${city} and nearby areas` : serviceArea
+  const secondaryContactHref = email ? `mailto:${email}` : '#contact'
+  const heroEyebrow = safeText(content.hero.eyebrow, 'Local home services')
+  const heroHeadline = safeText(content.hero.headline, city ? `Reliable local help in ${city}` : `Reliable local help from ${businessName}`)
+  const heroSubheadline = safeText(content.hero.subheadline, `Contact ${businessName} to talk through the service needed, property details, and next steps.`)
+  const primaryCta = safeText(content.hero.cta, 'Request a quote')
+  const secondaryCta = safeText(content.contact_cta.button_label, 'Send enquiry')
+  const contactBody = safeText(content.contact_cta.body, 'Call or send an enquiry with the service needed, location, and any useful details.')
+  const contactHeadline = safeText(content.contact_cta.headline, 'Need help with a local job?')
+  const services = content.services.map((service) => toDisplayService(service, city))
+  const trustReasons = toDisplayReasons(content.why_choose_us)
+
   return (
-    <main className="min-h-screen bg-stone-50 text-slate-950">
-      <header className="absolute left-0 right-0 top-0 z-10 px-6 py-6">
-        <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full border border-white/15 bg-white/10 px-5 py-3 text-white backdrop-blur">
-          <span className="font-bold tracking-tight">{businessName}</span>
-          {phone ? <a className="hidden items-center gap-2 text-sm font-semibold text-amber-200 sm:flex" href={`tel:${phone}`}><Phone className="h-4 w-4" /> {phone}</a> : null}
+    <main className="min-h-screen bg-[#f7f1e8] text-[#17211b]">
+      <header className="border-b border-[#d4c4aa] bg-[#f7f1e8]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 md:flex-row md:items-center md:justify-between lg:px-8">
+          <a className="text-2xl font-black tracking-[-0.04em] text-[#14231c]" href="#top" aria-label={`${businessName} home`}>
+            {businessName}
+          </a>
+          <nav className="flex flex-wrap items-center gap-x-7 gap-y-3 text-sm font-bold uppercase tracking-[0.18em] text-[#4d594f]" aria-label="Page sections">
+            <a className="transition hover:text-[#14231c]" href="#services">Services</a>
+            <a className="transition hover:text-[#14231c]" href="#why">Why call</a>
+            <a className="transition hover:text-[#14231c]" href="#contact">Contact</a>
+          </nav>
+          {phone ? (
+            <a className="inline-flex items-center justify-center gap-2 bg-[#f0b429] px-5 py-3 text-sm font-black uppercase tracking-[0.14em] text-[#14231c] transition hover:bg-[#ffd46a]" href={`tel:${phone}`}>
+              <Phone className="h-4 w-4" />
+              {phone}
+            </a>
+          ) : null}
         </div>
       </header>
 
-      <section className="relative overflow-hidden bg-slate-950 px-6 pb-24 pt-36 text-white sm:pt-44">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.22),_transparent_30rem),radial-gradient(circle_at_bottom_right,_rgba(59,130,246,0.22),_transparent_32rem)]" />
-        <div className="relative mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-amber-300">{content.hero.eyebrow}</p>
-            <h1 className="mt-5 max-w-4xl text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">{content.hero.headline}</h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-200">{content.hero.subheadline}</p>
-            <div className="mt-9 flex flex-wrap gap-4">
-              <a className="rounded-full bg-amber-300 px-6 py-3 font-bold text-slate-950 shadow-lg shadow-amber-950/20 transition hover:bg-amber-200" href={phone ? `tel:${phone}` : '#contact'}>{content.hero.cta}</a>
-              {city ? <span className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 font-semibold text-slate-200"><MapPin className="h-4 w-4" /> Serving {city}</span> : null}
+      <section className="border-b border-[#d4c4aa]" id="top">
+        <div className="mx-auto grid max-w-7xl lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="px-5 py-16 md:py-24 lg:px-8 lg:py-28">
+            <p className="text-sm font-black uppercase tracking-[0.32em] text-[#9b5a1a]">{heroEyebrow}</p>
+            <h1 className="mt-5 max-w-4xl text-5xl font-black leading-[0.95] tracking-[-0.06em] text-[#14231c] sm:text-6xl lg:text-7xl">
+              {heroHeadline}
+            </h1>
+            <p className="mt-7 max-w-2xl text-xl leading-9 text-[#4d594f]">{heroSubheadline}</p>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+              <a className="inline-flex items-center justify-center gap-3 bg-[#14231c] px-7 py-4 font-black uppercase tracking-[0.16em] text-white transition hover:bg-[#284235]" href={contactHref}>
+                {phone ? `Call ${phone}` : primaryCta}
+                <ArrowRight className="h-4 w-4" />
+              </a>
+              <a className="inline-flex items-center justify-center border-2 border-[#14231c] px-7 py-4 font-black uppercase tracking-[0.16em] text-[#14231c] transition hover:bg-[#14231c] hover:text-white" href={secondaryContactHref}>
+                {secondaryCta}
+              </a>
             </div>
           </div>
-          <div className="rounded-[2rem] border border-white/10 bg-white/10 p-6 shadow-2xl backdrop-blur">
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-amber-300">Concept mockup</p>
-            <h2 className="mt-4 text-2xl font-bold">A clearer homepage for local customers</h2>
-            <p className="mt-4 leading-7 text-slate-200">This layout turns services, service area, and contact details into a fast, trustworthy first impression.</p>
-            <div className="mt-6 grid gap-3">
-              {content.why_choose_us.slice(0, 3).map((reason) => <p className="flex gap-3 rounded-2xl bg-white/10 p-4 text-sm text-slate-100" key={reason}><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" /> {reason}</p>)}
+
+          <aside className="border-t border-[#d4c4aa] bg-[#15372f] px-5 py-12 text-white lg:border-l lg:border-t-0 lg:px-10 lg:py-28" aria-label="Contact summary">
+            <p className="text-sm font-black uppercase tracking-[0.3em] text-[#f0b429]">Local service</p>
+            <div className="mt-8 space-y-8">
+              <div className="border-t border-white/20 pt-6">
+                <div className="flex items-start gap-4">
+                  <MapPin className="mt-1 h-5 w-5 shrink-0 text-[#f0b429]" />
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-[0.18em] text-white/60">Area</p>
+                    <p className="mt-2 text-2xl font-black tracking-[-0.04em]">{serviceAreaLabel}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="border-t border-white/20 pt-6">
+                <div className="flex items-start gap-4">
+                  <Phone className="mt-1 h-5 w-5 shrink-0 text-[#f0b429]" />
+                  <div>
+                    <p className="text-sm font-black uppercase tracking-[0.18em] text-white/60">Contact</p>
+                    {phone ? <a className="mt-2 block text-3xl font-black tracking-[-0.05em] text-white transition hover:text-[#f0b429]" href={`tel:${phone}`}>{phone}</a> : <p className="mt-2 text-2xl font-black tracking-[-0.04em]">Use the enquiry details below</p>}
+                    {email ? <a className="mt-3 block text-white/75 underline decoration-white/30 underline-offset-4 hover:text-white" href={`mailto:${email}`}>{email}</a> : null}
+                  </div>
+                </div>
+              </div>
+              <div className="border-t border-white/20 pt-6">
+                <p className="max-w-md text-lg leading-8 text-white/80">{contactBody}</p>
+              </div>
             </div>
-          </div>
+          </aside>
         </div>
       </section>
 
-      <section className="px-6 py-20">
-        <div className="mx-auto max-w-6xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-700">Services</p>
-          <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <h2 className="max-w-2xl text-4xl font-bold tracking-tight">How {businessName} can help</h2>
-            <p className="max-w-md text-slate-600">Simple, clear service cards help visitors quickly understand whether this business can solve their problem.</p>
+      <section className="border-b border-[#d4c4aa] bg-[#fffaf0]" id="services">
+        <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
+          <div className="grid gap-8 lg:grid-cols-[0.42fr_1fr] lg:items-end">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.3em] text-[#9b5a1a]">Services</p>
+              <h2 className="mt-4 text-4xl font-black tracking-[-0.05em] text-[#14231c] md:text-5xl">What customers can call about</h2>
+            </div>
+            <p className="max-w-3xl text-lg leading-8 text-[#4d594f]">
+              For repairs, planned work, or practical enquiries, the services below outline common ways to get help from {businessName}.
+            </p>
           </div>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {content.services.map((service) => (
-              <article className="rounded-3xl border border-stone-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-xl" key={service.title}>
-                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700"><CheckCircle2 className="h-6 w-6" /></div>
-                <h3 className="text-xl font-bold">{service.title}</h3>
-                <p className="mt-3 leading-7 text-slate-600">{service.description}</p>
+
+          <div className="mt-12 border-t border-[#d4c4aa]">
+            {services.map((service, index) => (
+              <article className="grid gap-5 border-b border-[#d4c4aa] py-8 md:grid-cols-[6rem_0.7fr_1fr] md:items-start" key={`${service.title}-${index}`}>
+                <span className="font-mono text-sm font-bold text-[#9b5a1a]">{String(index + 1).padStart(2, '0')}</span>
+                <h3 className="text-2xl font-black tracking-[-0.04em] text-[#14231c]">{service.title}</h3>
+                <p className="text-lg leading-8 text-[#4d594f]">{service.description}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-white px-6 py-20">
-        <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
-          <div className="lg:sticky lg:top-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-700">Why choose us</p>
-            <h2 className="mt-3 text-4xl font-bold tracking-tight">Built to make trust obvious</h2>
-            <p className="mt-5 leading-7 text-slate-600">The page prioritises practical details customers look for before they call.</p>
+      <section className="border-b border-[#d4c4aa] bg-[#14231c] text-white" id="why">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 lg:grid-cols-[0.44fr_1fr] lg:px-8 lg:py-20">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.3em] text-[#f0b429]">Why call</p>
+            <h2 className="mt-4 text-4xl font-black tracking-[-0.05em] md:text-5xl">Practical details before a customer gets in touch</h2>
           </div>
-          <ul className="grid gap-4">
-            {content.why_choose_us.map((reason) => (
-              <li className="flex gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-slate-700" key={reason}>
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-                <span>{reason}</span>
-              </li>
+          <div className="border-t border-white/20">
+            {trustReasons.map((reason) => (
+              <div className="flex gap-5 border-b border-white/20 py-6" key={reason}>
+                <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-[#f0b429]" />
+                <p className="text-xl leading-8 text-white/80">{reason}</p>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       </section>
 
-      <section className="px-6 py-20">
-        <div className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] bg-slate-950 shadow-2xl" id="contact">
-          <div className="grid gap-8 p-8 text-white md:p-12 lg:grid-cols-[1fr_auto] lg:items-center">
+      <section className="border-b border-[#d4c4aa] bg-[#f7f1e8]">
+        <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
+          <div className="grid gap-8 lg:grid-cols-[0.42fr_1fr]">
             <div>
-              <p className="font-semibold text-amber-300">{content.service_area}</p>
-              <h2 className="mt-3 text-4xl font-bold tracking-tight">{content.contact_cta.headline}</h2>
-              <p className="mt-4 max-w-2xl leading-7 text-slate-200">{content.contact_cta.body}</p>
+              <p className="text-sm font-black uppercase tracking-[0.3em] text-[#9b5a1a]">Next steps</p>
+              <h2 className="mt-4 text-4xl font-black tracking-[-0.05em] text-[#14231c] md:text-5xl">Simple ways to get help</h2>
             </div>
-            <div className="flex flex-wrap gap-4 lg:flex-col">
-              {phone ? <a className="rounded-full bg-amber-300 px-6 py-3 text-center font-bold text-slate-950 hover:bg-amber-200" href={`tel:${phone}`}>{phone}</a> : null}
-              {email ? <a className="rounded-full border border-white/30 px-6 py-3 text-center font-bold text-white hover:bg-white/10" href={`mailto:${email}`}>{content.contact_cta.button_label}</a> : null}
+            <div className="grid border-t border-[#d4c4aa] md:grid-cols-3 md:border-l md:border-t-0">
+              {processSteps.map((step, index) => (
+                <div className="border-b border-[#d4c4aa] py-7 md:border-b-0 md:border-r md:px-7" key={step.title}>
+                  <span className="font-mono text-sm font-bold text-[#9b5a1a]">0{index + 1}</span>
+                  <h3 className="mt-5 text-2xl font-black tracking-[-0.04em] text-[#14231c]">{step.title}</h3>
+                  <p className="mt-4 leading-7 text-[#4d594f]">{step.body}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-stone-200 bg-white px-6 py-8 text-center text-sm leading-6 text-stone-500">
-        <p className="mx-auto max-w-4xl">{content.footer_disclaimer}</p>
+      <section className="bg-[#f0b429]" id="contact">
+        <div className="mx-auto grid max-w-7xl gap-8 px-5 py-14 lg:grid-cols-[1fr_auto] lg:items-center lg:px-8">
+          <div>
+            <p className="font-black uppercase tracking-[0.24em] text-[#59390d]">{serviceArea}</p>
+            <h2 className="mt-4 max-w-3xl text-4xl font-black leading-tight tracking-[-0.05em] text-[#14231c] md:text-5xl">{contactHeadline}</h2>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+            {phone ? <a className="bg-[#14231c] px-7 py-4 text-center font-black uppercase tracking-[0.16em] text-white transition hover:bg-[#284235]" href={`tel:${phone}`}>Call {phone}</a> : null}
+            {email ? <a className="border-2 border-[#14231c] px-7 py-4 text-center font-black uppercase tracking-[0.16em] text-[#14231c] transition hover:bg-[#14231c] hover:text-white" href={`mailto:${email}`}>{secondaryCta}</a> : null}
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-[#d4c4aa] bg-[#fffaf0] px-5 py-8 text-sm leading-6 text-[#5b655d] lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <p className="font-black tracking-[-0.03em] text-[#14231c]">{businessName}</p>
+          <p className="max-w-3xl md:text-right">{content.footer_disclaimer}</p>
+        </div>
       </footer>
     </main>
   )
+}
+
+function toDisplayService(service: DemoContentPayload['services'][number], city: string | undefined): DisplayService {
+  const serviceTitle = safeText(service.title, 'Local services')
+  const fallbackDescription = city
+    ? `Talk through ${serviceTitle.toLowerCase()} needs and next steps for properties in ${city}.`
+    : `Talk through ${serviceTitle.toLowerCase()} needs, property details, and next steps.`
+  return {
+    title: serviceTitle,
+    description: safeText(service.description, fallbackDescription),
+  }
+}
+
+function toDisplayReasons(reasons: string[]): string[] {
+  const safeReasons = reasons.map((reason) => safeText(reason, '')).filter(Boolean)
+  return safeReasons.length ? safeReasons : fallbackTrustReasons
+}
+
+function safeText(value: string, fallback: string): string {
+  const trimmed = value.trim()
+  if (!trimmed || internalCopyPatterns.some((pattern) => pattern.test(trimmed))) return fallback
+  return trimmed
 }

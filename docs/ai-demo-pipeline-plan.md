@@ -279,6 +279,7 @@ Commits:
 - [x] Add `/demo/[slug]` route.
 - [x] Add slug creation and demo site records.
 - [x] Add noindex metadata and footer disclaimer.
+- [x] Harden the Home Services Template into an original contractor-style landing page with no shadcn/card aesthetic and no customer-facing mockup/meta copy.
 
 Done when: a public demo URL renders from database content.
 
@@ -416,6 +417,7 @@ Use these skills deliberately during the build:
 - Payload Auth from the start is decided; implementation still needs exact access-control rules and admin route shape.
 - Screenshots are stored in Cloudflare R2 using S3-compatible signed PUT requests, with public URLs saved in each Demo Site QA report.
 - AI provider/model selection is admin-configurable through Payload AI Settings and optional per-run dashboard overrides. Environment provider/model variables remain bootstrap/fallback only; provider API keys and base URLs stay server-side in `.env`. Supported presets: `opencode-go`, `zai`, `openrouter`, `openai`, `openai-compatible`, and explicit `deterministic` fallback.
+- Public Home Services Demo Pages use custom contractor-style Tailwind layouts rather than shadcn/card landing-page patterns; shadcn remains appropriate for dashboard/admin UI.
 - First real leads are CSV imported from business-finder; sample leads are still needed for portfolio mode.
 - What domain/subdomain will host public demo pages?
 - What is the minimum acceptable QA pass threshold before human review?

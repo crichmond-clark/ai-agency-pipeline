@@ -31,7 +31,8 @@ export function runDeterministicQa(input: unknown): QaReport {
   checks.push({ name: 'public_slug_present', passed: Boolean(demoSite.slug), details: demoSite.slug ? `Slug: ${demoSite.slug}` : 'Missing slug.' })
   checks.push({ name: 'demo_is_public', passed: demoSite.is_public === true, details: demoSite.is_public ? 'Demo is public.' : 'Demo is not public.' })
   checks.push({ name: 'footer_disclaimer_present', passed: Boolean(content?.footer_disclaimer.toLowerCase().includes('unofficial') && content.footer_disclaimer.toLowerCase().includes('demonstration')), details: content?.footer_disclaimer ?? 'Missing disclaimer.' })
-  checks.push({ name: 'no_fake_reviews', passed: !JSON.stringify(content ?? {}).toLowerCase().includes('testimonial'), details: 'Structured content should not include testimonials or reviews.' })
+  checks.push({ name: 'no_fake_reviews', passed: !bodyContentIncludes(content, ['testimonial', 'review']), details: 'Structured content should not include testimonials or reviews.' })
+  checks.push({ name: 'no_meta_demo_copy', passed: !bodyContentIncludes(content, ['concept', 'mockup', 'demo', 'template', 'generated', 'layout', 'website', 'homepage', 'page', 'online home', 'lead data', 'business profile', 'service information', 'contact prompt', 'service-area messaging']), details: 'Customer-facing content should not describe the page as a demo, mockup, template, generated asset, layout, website, or internal workflow artifact.' })
 
   return {
     status: checks.every((check) => check.passed) ? 'passed' : 'failed',
@@ -48,4 +49,21 @@ function toDemoSiteForQa(input: unknown): DemoSiteForQa {
     content: demoSite.content,
     is_public: demoSite.is_public,
   }
+}
+
+function bodyContentIncludes(content: DemoContentPayload | null, blockedTerms: string[]): boolean {
+  if (!content) return false
+  const bodyContent = {
+    hero: content.hero,
+    services: content.services,
+    why_choose_us: content.why_choose_us,
+    service_area: content.service_area,
+    contact_cta: content.contact_cta,
+  }
+  const serialized = JSON.stringify(bodyContent).toLowerCase()
+  return blockedTerms.some((term) => new RegExp(`\\b${escapeRegExp(term)}s?\\b`).test(serialized))
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }

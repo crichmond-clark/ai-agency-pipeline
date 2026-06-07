@@ -3,12 +3,14 @@ from app.schemas import DemoContent, DemoContentRequest
 
 
 SYSTEM_PROMPT = """
-You generate safe structured demo homepage content for unofficial local-business concept mockups.
+You generate safe structured homepage content for local home-services businesses.
 Return JSON only matching the requested schema.
 Rules:
+- Write for the business's local customers, not for a designer reviewing a website.
 - Use verified facts and generic industry language only.
 - Do not present assumptions as factual claims.
-- No testimonials, reviews, ratings, certification badges, team claims, before/after claims, or scraped image/logo references.
+- Do not use the words demo, mockup, concept, template, generated, layout, website, homepage, page, lead data, or business profile outside footer_disclaimer.
+- No testimonials, reviews, ratings, certification badges, team claims, before/after claims, emergency/24-7 claims, guarantees, warranties, free-estimate claims, or scraped image/logo references.
 - The footer_disclaimer must clearly say the site is unofficial and for demonstration purposes.
 """.strip()
 
@@ -39,14 +41,14 @@ def deterministic_demo_content(request: DemoContentRequest) -> DemoContent:
 
     return DemoContent(
         hero={
-            "eyebrow": "Concept homepage mockup",
-            "headline": f"A clearer online home for {business_name}",
-            "subheadline": f"A simple, modern homepage concept for a {first_service.lower()} provider serving {city}.",
+            "eyebrow": "Local home services",
+            "headline": f"Reliable {first_service.lower()} help in {city}",
+            "subheadline": f"Contact {business_name} to talk through {first_service.lower()} work, service details, and next steps in {city}.",
             "cta": "Request a quote",
         },
-        services=[{"title": first_service, "description": "Clear service information written from verified lead data and generic industry language."}],
-        why_choose_us=["Easy-to-scan service information", "Clear contact prompts", "Local service-area messaging"],
+        services=[{"title": first_service, "description": f"Help with {first_service.lower()} enquiries for homes and local properties in {city}."}],
+        why_choose_us=["Straightforward contact details", "Clear information about local services", "A simple way to discuss the job before booking"],
         service_area=f"Serving {city} and nearby communities.",
-        contact_cta={"headline": "Ready to discuss your project?", "body": "Use this section to invite visitors to call or send an enquiry.", "button_label": "Get in touch"},
-        footer_disclaimer="Unofficial concept mockup for demonstration purposes only. This site is not endorsed by the business shown.",
+        contact_cta={"headline": "Need help with a local job?", "body": "Call or send an enquiry with the service needed, location, and any useful details.", "button_label": "Send enquiry"},
+        footer_disclaimer="Unofficial demonstration page for review purposes only. This site is not endorsed by the business shown.",
     )
