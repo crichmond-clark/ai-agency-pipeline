@@ -267,6 +267,7 @@ Commits:
 - [x] Generate/save homepage content JSON.
 - [x] Show generated data and recent Workflow Runs in Payload admin or custom review page.
 - [x] Use `/dashboard/leads` and `/dashboard/review/[leadId]` for workflow-oriented review and per-run AI model controls.
+- [x] Add a shadcn-style GUI workflow pass so demo creation approval, generation, QA, final approval/rejection, outreach draft editing/review, and guarded send actions are available from the dashboard.
 
 Done when: a lead can move from `new` to `profile_ready` with usable demo content saved.
 
