@@ -50,7 +50,7 @@ Non-Goals for the first build:
 - No Google Maps scraping or Places scanning inside this app at first; lead discovery remains in the existing business-finder app.
 - No Smartlead/Instantly integration at first.
 - No A/B testing.
-- No many-template marketplace.
+- No many-template marketplace; template variation should come from reviewed componentized template variants and validated theme tokens, not arbitrary AI-generated layouts.
 - No paid-client website deployment automation.
 - No autonomous claims, image scraping, fake testimonials, or fake reviews.
 
@@ -87,7 +87,7 @@ Deterministic workflow + structured AI steps + human approval gate
 - Payload Collections: source-of-truth records for leads, business profiles, demo sites, outreach messages, contact attempts, workflow runs, and media.
 - Python AI Service: owns OpenAI calls and exposes HTTP endpoints for profile generation, demo content generation, AI QA, and outreach draft copy generation.
 - Demo Renderer: render `/demo/[slug]` pages from saved Payload/Postgres content.
-- Template Components: start with one polished `HomeServicesTemplate`; add professional services/hospitality later.
+- Template Components: start with one polished `HomeServicesTemplate`; evolve it into a componentized, themeable public-demo renderer with fixed reviewed sections, whitelisted layout variants, and business-specific colour tokens before adding professional services/hospitality templates.
 - Screenshot Service: use Playwright from the Next.js/Payload app to capture desktop and mobile screenshots.
 - QA Service: Payload/Next runs deterministic QA, Python AI Service runs AI-assisted QA, and Payload combines both into the saved QA report.
 - Status Workflow: use separate pipeline and sales status fields.
