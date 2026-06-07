@@ -930,6 +930,13 @@ That gives us:
 - no schema migration risk yet,
 - no AI image/provider complexity yet.
 
+Implementation status on `feature/componentized-demo-templates`:
+
+- Phase 0 complete: local reference archives are ignored by git.
+- Phase 1 complete: demo theme tokens and safe CSS-variable style generation exist in `lib/demo-theme.ts`.
+- Phase 2 complete: the Home Services page is split into reviewed reusable section components under `components/demo-sections/`.
+- Phase 3 complete: `DemoPageRenderer` renders whitelisted section manifests for Home Services variants while preserving v1 demo content compatibility.
+
 Then follow with:
 
 ```txt
