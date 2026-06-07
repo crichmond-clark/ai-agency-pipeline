@@ -61,7 +61,7 @@ export function ImportLeadsForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><Upload className="h-5 w-5 text-blue-400" /> Import leads from CSV</CardTitle>
+        <CardTitle className="flex items-center gap-2"><Upload className="h-5 w-5 text-primary" /> Import leads from CSV</CardTitle>
         <CardDescription>Upload a business-finder CSV. Existing leads update by Google place ID, or business name + city when no place ID exists.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
