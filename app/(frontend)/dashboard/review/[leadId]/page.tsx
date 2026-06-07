@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { getPayload, type PayloadRequest } from 'payload'
 
 import { AppShell } from '@/components/dashboard/AppShell'
+import { CollapsibleSection } from '@/components/dashboard/CollapsibleSection'
 import { ContactabilityControl } from '@/components/dashboard/ContactabilityControl'
 import { GeneratedAssetsTabs } from '@/components/dashboard/GeneratedAssetsTabs'
 import { LeadSummaryCard, type LeadSummary } from '@/components/dashboard/LeadSummaryCard'
@@ -50,27 +51,37 @@ export default async function LeadReviewPage({ params }: { params: Promise<{ lea
   return (
     <AppShell actions={<ButtonLink href="/dashboard/leads" variant="outline">Back to leads</ButtonLink>} description="Review generated assets, check gating state, and run the next approved workflow action." title={lead.business_name}>
       <div className="grid gap-6">
-        <LeadSummaryCard lead={lead as LeadSummary} />
+        <CollapsibleSection description="Imported details and current lead state." title="Lead summary">
+          <LeadSummaryCard lead={lead as LeadSummary} />
+        </CollapsibleSection>
         <div className="grid w-full gap-6 lg:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Workflow guide</CardTitle>
-              <CardDescription>The happy path for one lead.</CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm leading-6 text-muted-foreground">
-              Approve demo creation → generate profile → generate demo content → review demo → run QA → approve lead → generate and review outreach. Sending remains blocked while portfolio mode is on.
-            </CardContent>
-          </Card>
-          <ContactabilityControl blocked={Boolean(lead.do_not_contact_at)} leadId={String(lead.id)} reason={lead.do_not_contact_reason} />
+          <CollapsibleSection description="The happy path for one lead." title="Workflow guide">
+            <Card>
+              <CardHeader>
+                <CardTitle>Workflow guide</CardTitle>
+                <CardDescription>The happy path for one lead.</CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm leading-6 text-muted-foreground">
+                Approve demo creation → generate profile → generate demo content → review demo → run QA → approve lead → generate and review outreach. Sending remains blocked while portfolio mode is on.
+              </CardContent>
+            </Card>
+          </CollapsibleSection>
+          <CollapsibleSection description="Reversible guard for generated outreach review and sending." title="Outreach safety">
+            <ContactabilityControl blocked={Boolean(lead.do_not_contact_at)} leadId={String(lead.id)} reason={lead.do_not_contact_reason} />
+          </CollapsibleSection>
         </div>
-        <div className="w-full">
+        <CollapsibleSection description="Run the next approved pipeline action." title="Workflow actions">
           <WorkflowActionPanel actions={actions} defaultModel={defaultSelection.model} defaultProvider={defaultSelection.provider} providers={[...aiProviders]} suggestions={suggestions} />
-        </div>
-        <div className="grid gap-6">
+        </CollapsibleSection>
+        <CollapsibleSection description="Edit generated outreach copy inline before review and send." title="Outreach draft">
           <OutreachDraftPanel outreach={outreach ? outreach as OutreachDraft : null} />
+        </CollapsibleSection>
+        <CollapsibleSection description="Business profile, demo site, QA report, and workflow run history." title="Generated assets">
           <GeneratedAssetsTabs demoSite={asOptionalRecord(demoSite)} outreach={asOptionalRecord(outreach)} profile={asOptionalRecord(profile)} workflowRuns={workflowRuns.docs.map(asRecord)} />
-        </div>
-        <SystemReadinessCard status={systemStatus} />
+        </CollapsibleSection>
+        <CollapsibleSection defaultOpen={false} description="Environment readiness checks for local testing and real sending." title="System readiness">
+          <SystemReadinessCard status={systemStatus} />
+        </CollapsibleSection>
       </div>
     </AppShell>
   )
