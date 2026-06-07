@@ -1,5 +1,6 @@
 import { ArrowRight, Database, ShieldCheck, Sparkles } from 'lucide-react'
 
+import { ThemeToggle } from '@/components/theme-toggle'
 import { ButtonLink } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -11,34 +12,34 @@ const features = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-slate-950 text-white">
-      <section className="relative px-6 py-20 sm:py-28 lg:px-8">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.45),_transparent_32rem),radial-gradient(circle_at_bottom_right,_rgba(16,185,129,0.28),_transparent_28rem)]" />
-        <div className="mx-auto max-w-6xl">
+    <main className="min-h-screen bg-muted/30 text-foreground">
+      <div className="mx-auto flex max-w-6xl flex-col gap-16 px-6 py-8 lg:px-8">
+        <nav className="flex justify-end"><ThemeToggle /></nav>
+        <section className="rounded-2xl border bg-card p-8 shadow-sm sm:p-12">
           <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-300">Human-in-the-loop pipeline</p>
+            <p className="text-sm font-medium text-primary">Human-in-the-loop pipeline</p>
             <h1 className="mt-6 text-5xl font-bold tracking-tight sm:text-7xl">AI Demo Website Pipeline</h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
               Import local business leads, generate reviewed concept mockups, run QA, and prepare outreach from one focused internal dashboard.
             </p>
-            <div className="mt-10 flex flex-wrap gap-4">
+            <div className="mt-10 flex flex-wrap gap-3">
               <ButtonLink className="gap-2" href="/dashboard/leads" size="lg">Open lead dashboard <ArrowRight size={18} /></ButtonLink>
               <ButtonLink href="/admin" size="lg" variant="outline">Open Payload admin</ButtonLink>
             </div>
           </div>
-          <div className="mt-16 grid gap-5 md:grid-cols-3">
-            {features.map((feature) => (
-              <Card className="border-white/10 bg-white/10 text-white shadow-2xl backdrop-blur" key={feature.title}>
-                <CardContent className="pt-6">
-                  <feature.icon className="h-7 w-7 text-blue-300" />
-                  <h2 className="mt-5 text-lg font-semibold">{feature.title}</h2>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        </section>
+        <div className="grid gap-5 md:grid-cols-3">
+          {features.map((feature) => (
+            <Card key={feature.title}>
+              <CardContent className="pt-6">
+                <feature.icon className="h-7 w-7 text-primary" />
+                <h2 className="mt-5 text-lg font-semibold">{feature.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{feature.description}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      </section>
+      </div>
     </main>
   )
 }

@@ -21,7 +21,7 @@ export function FilterBar({ pipelineStatuses, salesStatuses, values }: { pipelin
             </Select>
           </div>
           <Button type="submit">Filter</Button>
-          <Link className="inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-zinc-50" href="/dashboard/leads">Clear</Link>
+          <Link className="inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground" href="/dashboard/leads">Clear</Link>
         </form>
       </CardContent>
     </Card>

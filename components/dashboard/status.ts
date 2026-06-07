@@ -18,9 +18,16 @@ const labels: Record<string, string> = {
   running: 'Running',
   do_not_contact: 'Do not contact',
   contact_allowed: 'Allowed',
+  ready: 'Ready',
+  blocked: 'Blocked',
+  complete: 'Complete',
+  configured: 'Configured',
+  missing: 'Missing',
+  public: 'Public',
+  private: 'Private',
 }
 
-type StatusVariant = 'neutral' | 'blue' | 'green' | 'amber' | 'red' | 'slate' | 'purple' | 'cyan'
+type StatusVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info' | 'purple'
 
 export function statusLabel(value: string | boolean | null | undefined) {
   if (typeof value === 'boolean') return value ? 'Approved' : 'Not approved'
@@ -29,30 +36,37 @@ export function statusLabel(value: string | boolean | null | undefined) {
 }
 
 export function statusVariant(value: string | boolean | null | undefined): StatusVariant {
-  if (value === true) return 'green'
-  if (value === false || !value) return 'neutral'
+  if (value === true) return 'success'
+  if (value === false || !value) return 'secondary'
 
   const variants: Record<string, StatusVariant> = {
-    new: 'neutral',
-    profile_ready: 'blue',
-    demo_content_ready: 'cyan',
+    new: 'secondary',
+    profile_ready: 'default',
+    demo_content_ready: 'info',
     demo_ready: 'purple',
-    qa_failed: 'red',
-    needs_review: 'amber',
-    approved: 'green',
-    rejected: 'red',
-    not_contacted: 'neutral',
-    contacted: 'blue',
-    replied: 'cyan',
+    qa_failed: 'destructive',
+    needs_review: 'warning',
+    approved: 'success',
+    rejected: 'destructive',
+    not_contacted: 'secondary',
+    contacted: 'default',
+    replied: 'info',
     call_booked: 'purple',
-    won: 'green',
-    lost: 'red',
-    succeeded: 'green',
-    failed: 'red',
-    running: 'amber',
-    do_not_contact: 'red',
-    contact_allowed: 'green',
+    won: 'success',
+    lost: 'destructive',
+    succeeded: 'success',
+    failed: 'destructive',
+    running: 'warning',
+    do_not_contact: 'destructive',
+    contact_allowed: 'success',
+    ready: 'success',
+    blocked: 'secondary',
+    complete: 'success',
+    configured: 'success',
+    missing: 'secondary',
+    public: 'success',
+    private: 'secondary',
   }
 
-  return variants[value] ?? 'slate'
+  return variants[value] ?? 'outline'
 }

@@ -110,7 +110,7 @@ export function AiRunControls({ providers, defaultProvider, defaultModel, sugges
             <button className="rounded-xl border border-zinc-700 bg-zinc-950/70 p-4 text-left shadow-sm transition hover:border-blue-500/70 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-zinc-700 disabled:hover:bg-zinc-950/70" disabled={!action.enabled || Boolean(busyAction)} key={action.key} onClick={() => runAction(action)} title={action.disabledReason} type="button">
               <div className="flex items-center justify-between gap-3">
                 <span className="font-semibold text-zinc-50">{busyAction === action.key ? 'Running…' : action.label}</span>
-                <StatusBadge value={action.enabled} />
+                <StatusBadge value={action.enabled ? 'ready' : 'blocked'} />
               </div>
               {!action.enabled && action.disabledReason ? <p className="mt-2 text-sm text-zinc-400">{action.disabledReason}</p> : null}
             </button>
