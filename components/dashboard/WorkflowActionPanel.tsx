@@ -42,6 +42,10 @@ type Props = {
 
 export function WorkflowActionPanel({ providers, defaultProvider, defaultModel, suggestions, actions }: Props) {
   const router = useRouter()
+  const nextAction = actions.find((action) => action.enabled && action.status === 'ready')
+  const primaryActions = nextAction ? [nextAction] : []
+  const primaryActionKeys = new Set(primaryActions.map((action) => action.key))
+  const secondaryActions = actions.filter((action) => !primaryActionKeys.has(action.key))
   const [provider, setProvider] = useState<AiProvider>(defaultProvider)
   const [model, setModel] = useState(defaultModel ?? '')
   const [useOverride, setUseOverride] = useState(false)
@@ -100,7 +104,7 @@ export function WorkflowActionPanel({ providers, defaultProvider, defaultModel, 
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Wand2 className="h-5 w-5 text-primary" /> Workflow actions</CardTitle>
-        <CardDescription>Everything needed to move this lead through the MVP pipeline. Server-side guards are still authoritative.</CardDescription>
+        <CardDescription>Start here. The next available action is highlighted; completed and blocked controls are kept below for context.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="rounded-lg border bg-muted/30 p-4">
@@ -127,9 +131,31 @@ export function WorkflowActionPanel({ providers, defaultProvider, defaultModel, 
             </Button>
           </div>
         </div>
+        {primaryActions.length ? (
+          <section className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="font-semibold">Next available action</h3>
+                <p className="text-sm text-muted-foreground">Use these controls to move the lead forward.</p>
+              </div>
+              <StatusBadge value="ready" />
+            </div>
+            <div className="grid gap-3">
+              {primaryActions.map((action) => <ActionButton action={action} busy={busyAction === action.key} disabled={Boolean(busyAction)} key={action.key} onRun={() => runAction(action)} primary />)}
+            </div>
+          </section>
+        ) : (
+          <Alert variant="success"><AlertDescription>No immediate workflow action is available. Check the completed/blocked controls below for current state.</AlertDescription></Alert>
+        )}
         <Separator />
-        <div className="grid gap-3">
-          {actions.map((action) => <ActionButton action={action} busy={busyAction === action.key} disabled={Boolean(busyAction)} key={action.key} onRun={() => runAction(action)} />)}
+        <div className="space-y-3">
+          <div>
+            <h3 className="font-semibold">Completed and blocked controls</h3>
+            <p className="text-sm text-muted-foreground">These are secondary so the main action stays easy to find.</p>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {secondaryActions.map((action) => <ActionButton action={action} busy={busyAction === action.key} disabled={Boolean(busyAction)} key={action.key} onRun={() => runAction(action)} />)}
+          </div>
         </div>
         {message ? <Alert variant={message.includes('succeeded') || message.includes('Refreshed') ? 'success' : 'destructive'}><AlertDescription>{message}</AlertDescription></Alert> : null}
       </CardContent>
@@ -137,14 +163,18 @@ export function WorkflowActionPanel({ providers, defaultProvider, defaultModel, 
   )
 }
 
-function ActionButton({ action, busy, disabled, onRun }: { action: WorkflowAction; busy: boolean; disabled: boolean; onRun: () => void }) {
+function ActionButton({ action, busy, disabled, onRun, primary = false }: { action: WorkflowAction; busy: boolean; disabled: boolean; onRun: () => void; primary?: boolean }) {
+  const cta = actionCta(action, busy)
   const button = (
-    <Button className="h-auto w-full justify-between gap-4 whitespace-normal p-4 text-left" disabled={!action.enabled || disabled} type="button" variant={action.confirm?.destructive ? 'destructive' : 'outline'} onClick={action.confirm ? undefined : onRun}>
-      <span>
+    <Button className="h-auto w-full justify-between gap-4 whitespace-normal p-4 text-left" disabled={!action.enabled || disabled} type="button" variant={action.confirm?.destructive ? 'destructive' : primary ? 'default' : 'outline'} onClick={action.confirm ? undefined : onRun}>
+      <span className="min-w-0">
         <span className="block font-semibold">{busy ? 'Running…' : action.label}</span>
         <span className="mt-1 block text-xs font-normal opacity-80">{action.enabled ? action.description : action.disabledReason}</span>
       </span>
-      <StatusBadge value={action.status ?? (action.enabled ? 'ready' : 'blocked')} />
+      <span className="flex shrink-0 flex-col items-end gap-2">
+        <StatusBadge value={action.status ?? (action.enabled ? 'ready' : 'blocked')} />
+        {cta ? <span className="rounded-md bg-background/60 px-2 py-1 text-xs font-semibold text-foreground shadow-sm">{cta}</span> : null}
+      </span>
     </Button>
   )
 
@@ -165,4 +195,13 @@ function ActionButton({ action, busy, disabled, onRun }: { action: WorkflowActio
       </AlertDialogContent>
     </AlertDialog>
   )
+}
+
+function actionCta(action: WorkflowAction, busy: boolean): string | null {
+  if (!action.enabled) return null
+  if (busy) return 'Running…'
+  if (action.status === 'complete') return 'Regenerate'
+  if (action.confirm?.destructive) return 'Confirm send'
+  if (action.confirm) return 'Review & confirm'
+  return 'Run now'
 }

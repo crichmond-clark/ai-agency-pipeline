@@ -3,12 +3,12 @@ import { headers } from 'next/headers'
 import { getPayload, type PayloadRequest } from 'payload'
 
 import { AppShell } from '@/components/dashboard/AppShell'
+import { ContactabilityControl } from '@/components/dashboard/ContactabilityControl'
 import { GeneratedAssetsTabs } from '@/components/dashboard/GeneratedAssetsTabs'
 import { LeadSummaryCard, type LeadSummary } from '@/components/dashboard/LeadSummaryCard'
 import { OutreachDraftPanel, type OutreachDraft } from '@/components/dashboard/OutreachDraftPanel'
 import { SystemReadinessCard } from '@/components/dashboard/SystemReadinessCard'
 import { WorkflowActionPanel, type WorkflowAction } from '@/components/dashboard/WorkflowActionPanel'
-import { WorkflowStepper, type WorkflowStage } from '@/components/dashboard/WorkflowStepper'
 import { Alert } from '@/components/ui/alert'
 import { ButtonLink } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -46,32 +46,31 @@ export default async function LeadReviewPage({ params }: { params: Promise<{ lea
   const suggestions = Object.fromEntries(aiProviders.map((provider) => [provider, modelSuggestions(provider, cache)])) as Partial<Record<AiProvider, string[]>>
 
   const actions = workflowActions({ lead: asRecord(lead), profile: asOptionalRecord(profile), demoSite: asOptionalRecord(demoSite), outreach: asOptionalRecord(outreach), portfolioMode: systemStatus.portfolioMode, resendConfigured: systemStatus.resendConfigured, r2Configured: systemStatus.r2Configured })
-  const stages = workflowStages({ lead: asRecord(lead), profile: Boolean(profile), demoSite: Boolean(demoSite), outreachStatus: typeof outreach?.status === 'string' ? outreach.status : undefined })
 
   return (
     <AppShell actions={<ButtonLink href="/dashboard/leads" variant="outline">Back to leads</ButtonLink>} description="Review generated assets, check gating state, and run the next approved workflow action." title={lead.business_name}>
       <div className="grid gap-6">
-        <SystemReadinessCard status={systemStatus} />
-        <WorkflowStepper stages={stages} />
-        <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
-          <div className="grid gap-6">
-            <LeadSummaryCard lead={lead as LeadSummary} />
-            <OutreachDraftPanel outreach={outreach ? outreach as OutreachDraft : null} />
-            <GeneratedAssetsTabs demoSite={asOptionalRecord(demoSite)} outreach={asOptionalRecord(outreach)} profile={asOptionalRecord(profile)} workflowRuns={workflowRuns.docs.map(asRecord)} />
-          </div>
-          <div className="grid content-start gap-6">
-            <WorkflowActionPanel actions={actions} defaultModel={defaultSelection.model} defaultProvider={defaultSelection.provider} providers={[...aiProviders]} suggestions={suggestions} />
-            <Card>
-              <CardHeader>
-                <CardTitle>Workflow guide</CardTitle>
-                <CardDescription>The happy path for one lead.</CardDescription>
-              </CardHeader>
-              <CardContent className="text-sm leading-6 text-muted-foreground">
-                Approve demo creation → generate profile → generate demo content → review demo → run QA → approve/reject → generate and review outreach. Sending remains blocked while portfolio mode is on.
-              </CardContent>
-            </Card>
-          </div>
+        <LeadSummaryCard lead={lead as LeadSummary} />
+        <div className="grid w-full gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Workflow guide</CardTitle>
+              <CardDescription>The happy path for one lead.</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm leading-6 text-muted-foreground">
+              Approve demo creation → generate profile → generate demo content → review demo → run QA → approve lead → generate and review outreach. Sending remains blocked while portfolio mode is on.
+            </CardContent>
+          </Card>
+          <ContactabilityControl blocked={Boolean(lead.do_not_contact_at)} leadId={String(lead.id)} reason={lead.do_not_contact_reason} />
         </div>
+        <div className="w-full">
+          <WorkflowActionPanel actions={actions} defaultModel={defaultSelection.model} defaultProvider={defaultSelection.provider} providers={[...aiProviders]} suggestions={suggestions} />
+        </div>
+        <div className="grid gap-6">
+          <OutreachDraftPanel outreach={outreach ? outreach as OutreachDraft : null} />
+          <GeneratedAssetsTabs demoSite={asOptionalRecord(demoSite)} outreach={asOptionalRecord(outreach)} profile={asOptionalRecord(profile)} workflowRuns={workflowRuns.docs.map(asRecord)} />
+        </div>
+        <SystemReadinessCard status={systemStatus} />
       </div>
     </AppShell>
   )
@@ -93,6 +92,7 @@ function workflowActions({ lead, profile, demoSite, outreach, portfolioMode, res
   const reviewBlock = outreach ? getOutreachReviewBlockReason({ lead, demoSite, outreach }) : 'Outreach draft required'
   const sendBlock = outreach ? getSendBlockReason({ lead, demoSite, outreach, portfolioMode }) : 'Outreach draft required'
   const sendReadinessBlock = !resendConfigured && !portfolioMode ? 'Resend is not configured' : sendBlock
+  const qaComplete = lead.pipeline_status === 'needs_review' || lead.pipeline_status === 'approved'
 
   return [
     {
@@ -110,8 +110,8 @@ function workflowActions({ lead, profile, demoSite, outreach, portfolioMode, res
       label: 'Generate Profile',
       description: 'Create the structured Business Profile with the AI service.',
       endpoint: `/api/leads/${leadId}/generate-profile`,
-      enabled: Boolean(lead.demo_creation_approved_at),
-      disabledReason: 'Demo Creation Approval required.',
+      enabled: Boolean(lead.demo_creation_approved_at && !profile),
+      disabledReason: profile ? 'Business Profile already exists.' : 'Demo Creation Approval required.',
       status: profile ? 'complete' : lead.demo_creation_approved_at ? 'ready' : 'blocked',
       aiTask: true,
     },
@@ -120,8 +120,8 @@ function workflowActions({ lead, profile, demoSite, outreach, portfolioMode, res
       label: 'Generate Demo Content',
       description: 'Generate homepage content and create/update the Demo Site.',
       endpoint: `/api/leads/${leadId}/generate-demo-content`,
-      enabled: Boolean(lead.demo_creation_approved_at && profile),
-      disabledReason: !lead.demo_creation_approved_at ? 'Demo Creation Approval required.' : 'Business Profile required.',
+      enabled: Boolean(lead.demo_creation_approved_at && profile && !demoSite),
+      disabledReason: demoSite ? 'Demo Site already exists.' : !lead.demo_creation_approved_at ? 'Demo Creation Approval required.' : 'Business Profile required.',
       status: demoSite ? 'complete' : lead.demo_creation_approved_at && profile ? 'ready' : 'blocked',
       aiTask: true,
     },
@@ -139,9 +139,9 @@ function workflowActions({ lead, profile, demoSite, outreach, portfolioMode, res
       label: 'Run QA',
       description: 'Run deterministic and AI-assisted QA checks.',
       endpoint: demoSiteId ? `/api/demo-sites/${demoSiteId}/run-qa` : '#',
-      enabled: Boolean(demoSiteId),
-      disabledReason: 'Demo Site required.',
-      status: demoSiteId ? 'ready' : 'blocked',
+      enabled: Boolean(demoSiteId && !qaComplete),
+      disabledReason: qaComplete ? 'QA has already passed.' : 'Demo Site required.',
+      status: qaComplete ? 'complete' : demoSiteId ? 'ready' : 'blocked',
       aiTask: true,
     },
     {
@@ -153,16 +153,6 @@ function workflowActions({ lead, profile, demoSite, outreach, portfolioMode, res
       disabledReason: approvalBlock ?? undefined,
       status: lead.pipeline_status === 'approved' ? 'complete' : approvalBlock ? 'blocked' : 'ready',
       confirm: { title: 'Approve this lead?', description: 'Approval converts the lead into a prospect and allows outreach draft generation.' },
-    },
-    {
-      key: 'reject',
-      label: 'Reject Lead',
-      description: 'Stop this lead from moving forward.',
-      endpoint: `/api/leads/${leadId}/reject`,
-      enabled: lead.pipeline_status !== 'rejected',
-      disabledReason: 'Lead is already rejected.',
-      status: lead.pipeline_status === 'rejected' ? 'complete' : 'ready',
-      confirm: { title: 'Reject this lead?', description: 'This marks the lead as rejected. You can still inspect its records later.', destructive: true },
     },
     {
       key: 'outreach',
@@ -195,31 +185,6 @@ function workflowActions({ lead, profile, demoSite, outreach, portfolioMode, res
       confirm: { title: 'Send this email?', description: 'This sends a real email and records a contact attempt. There is no bulk or automatic send.', destructive: true },
     },
   ]
-}
-
-function workflowStages({ lead, profile, demoSite, outreachStatus }: { lead: RecordLike; profile: boolean; demoSite: boolean; outreachStatus?: string }): WorkflowStage[] {
-  return [
-    { key: 'approval', label: 'Demo approval', description: lead.demo_creation_approved_at ? 'Generation approved.' : 'Approve before using AI.', state: lead.demo_creation_approved_at ? 'done' : 'current' },
-    { key: 'profile', label: 'Profile', description: profile ? 'Business Profile exists.' : 'Generate structured business facts.', state: profile ? 'done' : lead.demo_creation_approved_at ? 'current' : 'blocked' },
-    { key: 'demo', label: 'Demo', description: demoSite ? 'Demo Site exists.' : 'Generate template content.', state: demoSite ? 'done' : profile ? 'current' : 'blocked' },
-    { key: 'qa', label: 'QA + review', description: qaDescription(lead.pipeline_status), state: qaStageState(lead.pipeline_status) },
-    { key: 'outreach', label: 'Outreach', description: outreachStatus ? `Draft status: ${outreachStatus}.` : 'Generate after approval.', state: outreachStatus === 'sent' || outreachStatus === 'reviewed' ? 'done' : lead.pipeline_status === 'approved' ? 'current' : 'blocked' },
-  ]
-}
-
-function qaStageState(pipelineStatus: unknown): WorkflowStage['state'] {
-  if (pipelineStatus === 'approved') return 'done'
-  if (pipelineStatus === 'needs_review') return 'current'
-  if (pipelineStatus === 'qa_failed') return 'blocked'
-  if (pipelineStatus === 'demo_ready') return 'current'
-  return 'blocked'
-}
-
-function qaDescription(pipelineStatus: unknown): string {
-  if (pipelineStatus === 'approved') return 'Lead approved.'
-  if (pipelineStatus === 'needs_review') return 'QA passed; human decision required.'
-  if (pipelineStatus === 'qa_failed') return 'QA failed; regenerate or inspect issues.'
-  return 'Run QA after demo generation.'
 }
 
 function outreachDisabledReason(lead: RecordLike, hasDemo: boolean): string | undefined {
