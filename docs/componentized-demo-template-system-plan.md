@@ -943,4 +943,4 @@ Then follow with:
 Phase 4 → Phase 5 → Phase 6
 ```
 
-Once the renderer shape feels right.
+Once the renderer shape feels right. The focused implementation plan for making the variants visually distinct is `docs/home-services-template-variants-plan.md`.
