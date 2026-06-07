@@ -9,3 +9,6 @@ __pycache__
 *.py[cod]
 .venv
 workers/python/.venv
+
+# Local reference archives
+edwards-plumbing.zip
