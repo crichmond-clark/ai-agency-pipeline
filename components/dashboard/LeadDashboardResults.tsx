@@ -19,7 +19,7 @@ export function LeadDashboardResults({ rows, portfolioMode }: { rows: LeadDashbo
       <table className="w-full border-collapse text-sm">
         <caption className="sr-only">Leads and their current workflow, sales, and Demo Site states</caption>
         <thead className="bg-muted/60 text-left text-xs uppercase tracking-wide text-muted-foreground"><tr><Header>Business</Header><Header>Workflow</Header><Header>Sales</Header><Header>Demo Site</Header><Header><span className="sr-only">Open review</span></Header></tr></thead>
-        <tbody className="divide-y divide-border">{rows.map((row) => <DesktopRow key={row.lead.id} portfolioMode={portfolioMode} row={row} />)}</tbody>
+        <tbody>{rows.map((row) => <DesktopRow key={row.lead.id} portfolioMode={portfolioMode} row={row} />)}</tbody>
       </table>
     </Card>
     <div className="grid gap-4 xl:hidden">{rows.map((row) => <MobileCard key={row.lead.id} portfolioMode={portfolioMode} row={row} />)}</div>
@@ -28,7 +28,7 @@ export function LeadDashboardResults({ rows, portfolioMode }: { rows: LeadDashbo
 
 function DesktopRow({ row, portfolioMode }: { row: LeadDashboardRow; portfolioMode: boolean }) {
   const availability = demoAvailability(row, portfolioMode)
-  return <tr className="transition-colors hover:bg-muted/35 focus-within:bg-muted/35 motion-reduce:transition-none">
+  return <tr className="even:bg-muted/25 transition-colors hover:bg-primary/5 focus-within:bg-primary/5 motion-reduce:transition-none">
     <Cell><Business lead={row.lead} /></Cell>
     <Cell><div className="space-y-2"><Badge variant={statusBadgeVariant(row.lead.pipeline_status)}>{formatDashboardStatus(row.lead.pipeline_status)}</Badge><WorkflowSummary run={row.workflowRun} /></div></Cell>
     <Cell><Badge variant={statusBadgeVariant(row.lead.sales_status)}>{formatDashboardStatus(row.lead.sales_status)}</Badge></Cell>
@@ -39,7 +39,7 @@ function DesktopRow({ row, portfolioMode }: { row: LeadDashboardRow; portfolioMo
 
 function MobileCard({ row, portfolioMode }: { row: LeadDashboardRow; portfolioMode: boolean }) {
   const availability = demoAvailability(row, portfolioMode)
-  return <Card className="transition-shadow hover:shadow-md focus-within:ring-2 focus-within:ring-ring motion-reduce:transition-none"><CardContent className="space-y-4 p-5"><div className="flex items-start justify-between gap-4"><Business lead={row.lead} /><ReviewLink lead={row.lead} /></div><div className="flex flex-wrap gap-2"><Badge variant={statusBadgeVariant(row.lead.pipeline_status)}>{formatDashboardStatus(row.lead.pipeline_status)}</Badge><Badge variant={statusBadgeVariant(row.lead.sales_status)}>Sales: {formatDashboardStatus(row.lead.sales_status)}</Badge>{row.lead.demo_creation_approved_at ? <Badge variant="outline">Demo creation approved</Badge> : null}</div><WorkflowSummary run={row.workflowRun} />{row.demoSite ? <div className="flex flex-col gap-1 border-t pt-3 sm:flex-row sm:items-center sm:justify-between"><span className="text-xs text-muted-foreground">{availability}</span><Link className="inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" href={`/dashboard/review/${row.lead.id}/demo-preview`}><Eye className="h-4 w-4" /> Admin preview</Link></div> : null}</CardContent></Card>
+  return <Card className="transition-[box-shadow,transform] hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 focus-within:ring-ring motion-reduce:transform-none motion-reduce:transition-none"><CardContent className="space-y-4 p-5"><div className="flex items-start justify-between gap-4"><Business lead={row.lead} /><ReviewLink lead={row.lead} /></div><div className="flex flex-wrap gap-2"><Badge variant={statusBadgeVariant(row.lead.pipeline_status)}>{formatDashboardStatus(row.lead.pipeline_status)}</Badge><Badge variant={statusBadgeVariant(row.lead.sales_status)}>Sales: {formatDashboardStatus(row.lead.sales_status)}</Badge>{row.lead.demo_creation_approved_at ? <Badge variant="outline">Demo creation approved</Badge> : null}</div><WorkflowSummary run={row.workflowRun} />{row.demoSite ? <div className="flex flex-col gap-1 rounded-lg bg-muted/55 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"><span className="text-xs text-muted-foreground">{availability}</span><Link className="inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" href={`/dashboard/review/${row.lead.id}/demo-preview`}><Eye className="h-4 w-4" /> Admin preview</Link></div> : null}</CardContent></Card>
 }
 
 function Business({ lead }: { lead: Lead }) { return <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="break-words font-semibold">{lead.business_name}</p>{lead.do_not_contact_at ? <Badge variant="warning"><ShieldAlert className="mr-1 h-3 w-3" /> Do Not Contact</Badge> : null}</div><p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3" /> {lead.city ?? 'Location unavailable'}</p>{lead.email ? <p className="mt-1 break-all text-xs text-muted-foreground">{lead.email}</p> : null}</div> }
