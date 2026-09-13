@@ -55,7 +55,8 @@ export default async function LeadReviewPage({ params }: { params: Promise<{ lea
         {lead.do_not_contact_at ? <Alert className="border-amber-300 bg-amber-50 text-amber-950"><ShieldAlert className="h-4 w-4" /><AlertTitle>Do Not Contact is active</AlertTitle><AlertDescription>{lead.do_not_contact_reason ?? 'Outreach generation and sending are blocked for this lead.'}</AlertDescription></Alert> : null}
         <Card><CardHeader className="pb-3"><div className="flex items-center justify-between gap-4"><div><CardTitle>Workflow progress</CardTitle><CardDescription className="mt-1">{completed} of {steps.length} stages complete. The highlighted stage is the next decision.</CardDescription></div><span aria-label={`${Math.round((completed / steps.length) * 100)} percent complete`} className="text-sm font-medium text-muted-foreground">{Math.round((completed / steps.length) * 100)}%</span></div><Progress aria-label="Workflow progress" className="mt-3" value={(completed / steps.length) * 100} /></CardHeader><CardContent><ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-7">{steps.map((step) => <li className="relative" key={step.key}><Step state={step.state} label={step.label} description={step.description} /></li>)}</ol></CardContent></Card>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <AiRunControls actions={actions} defaultModel={defaultSelection.model} defaultProvider={defaultSelection.provider} providers={[...aiProviders]} suggestions={suggestions} />
+        <div className="space-y-6">
           <div className="min-w-0 space-y-6">
             <Card><CardHeader><CardTitle>Lead overview</CardTitle><CardDescription>Source details and contactability used by the pipeline.</CardDescription></CardHeader><CardContent className="grid gap-4 sm:grid-cols-2"><Field label="Address" value={lead.address} /><Field label="Phone" value={lead.phone} /><Field label="Email" value={lead.email} /><Field label="Website" value={lead.website_url} link={lead.website_url} /><Field label="Lead source" value={lead.lead_source} /><Field label="Source revision" value={String(lead.source_revision ?? 1)} /></CardContent></Card>
             <ProfileCard profile={profile ? toRecord(profile) : undefined} />
@@ -64,7 +65,6 @@ export default async function LeadReviewPage({ params }: { params: Promise<{ lea
             <OutreachCard outreach={outreach ? toRecord(outreach) : undefined} recipient={lead.email} />
             <Timeline runs={runs.docs.map(toRecord)} />
           </div>
-          <aside className="lg:sticky lg:top-6 lg:self-start"><AiRunControls actions={actions} defaultModel={defaultSelection.model} defaultProvider={defaultSelection.provider} providers={[...aiProviders]} suggestions={suggestions} /></aside>
         </div>
       </div>
     </main>
