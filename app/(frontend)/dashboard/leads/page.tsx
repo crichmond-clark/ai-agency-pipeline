@@ -12,6 +12,7 @@ const pipelineStatuses = ['new', 'profile_ready', 'demo_content_ready', 'demo_re
 const salesStatuses = ['not_contacted', 'contacted', 'replied', 'call_booked', 'won', 'lost']
 
 type SearchParams = {
+  page?: string
   pipeline_status?: string
   sales_status?: string
   demo_creation_approved?: string
@@ -24,7 +25,8 @@ export default async function DashboardLeadsPage({ searchParams }: { searchParam
 
   const params = await searchParams
   const filters = buildFilters(params)
-  const leads = await payload.find({ collection: 'leads', where: filters, limit: 50, sort: '-updatedAt' })
+  const page = parsePage(params.page)
+  const leads = await payload.find({ collection: 'leads', where: filters, limit: 25, page, sort: '-updatedAt' })
   const rows = await Promise.all(leads.docs.map(async (lead) => {
     const [demos, runs] = await Promise.all([
       payload.find({ collection: 'demo-sites', where: { lead: { equals: lead.id } }, limit: 1, sort: '-updatedAt' }),
@@ -36,6 +38,7 @@ export default async function DashboardLeadsPage({ searchParams }: { searchParam
   return (
     <main style={{ padding: 32 }}>
       <h1>Lead dashboard</h1>
+      <p>Page {leads.page} of {leads.totalPages} ({leads.totalDocs} leads)</p>
       <ImportLeadsForm />
       <form style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
         <FilterSelect label="Pipeline" name="pipeline_status" options={pipelineStatuses} value={params.pipeline_status} />
@@ -79,8 +82,26 @@ export default async function DashboardLeadsPage({ searchParams }: { searchParam
           ))}
         </tbody>
       </table>
+      <nav aria-label="Lead pages" style={{ display: 'flex', gap: 12, marginTop: 20 }}>
+        {leads.hasPrevPage ? <Link href={pageHref(params, page - 1)}>Previous</Link> : null}
+        {leads.hasNextPage ? <Link href={pageHref(params, page + 1)}>Next</Link> : null}
+      </nav>
     </main>
   )
+}
+
+function parsePage(value?: string): number {
+  const page = Number(value)
+  return Number.isInteger(page) && page > 0 ? page : 1
+}
+
+function pageHref(params: SearchParams, page: number): string {
+  const query = new URLSearchParams()
+  if (params.pipeline_status) query.set('pipeline_status', params.pipeline_status)
+  if (params.sales_status) query.set('sales_status', params.sales_status)
+  if (params.demo_creation_approved) query.set('demo_creation_approved', params.demo_creation_approved)
+  query.set('page', String(page))
+  return `/dashboard/leads?${query.toString()}`
 }
 
 function buildFilters(params: SearchParams): Where | undefined {
