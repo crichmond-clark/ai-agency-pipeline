@@ -36,13 +36,15 @@ export default async function DemoPage({ params }: PageProps) {
   if (!lead) notFound()
 
   const content = DemoContentSchema.parse(demoSite.content)
+  const portfolioMode = process.env.PORTFOLIO_MODE === 'true'
+  if (portfolioMode && !lead.is_sample_lead) notFound()
 
   return (
     <HomeServicesTemplate
       businessName={lead.business_name}
       city={lead.city ?? undefined}
-      phone={lead.phone ?? undefined}
-      email={lead.email ?? undefined}
+      phone={portfolioMode ? undefined : lead.phone ?? undefined}
+      email={portfolioMode ? undefined : lead.email ?? undefined}
       content={content}
     />
   )

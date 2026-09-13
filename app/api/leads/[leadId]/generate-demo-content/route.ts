@@ -34,7 +34,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ lea
       template,
       slug: existingDemoSites.docs[0]?.slug ?? demoSlugForLead(lead),
       content,
-      is_public: true,
+      is_public: existingDemoSites.docs[0]?.is_public ?? true,
+      expires_at: existingDemoSites.docs[0]?.expires_at ?? (lead.is_sample_lead ? undefined : new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString()),
     }
     const demoSite = existingDemoSites.docs[0]
       ? await payload.update({ collection: 'demo-sites', id: existingDemoSites.docs[0].id, data: demoSiteData })
