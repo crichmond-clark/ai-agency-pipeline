@@ -61,11 +61,11 @@ export function ImportLeadsForm() {
     <Card>
       <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-base"><FileSpreadsheet className="h-4 w-4 text-primary" /> Import Leads</CardTitle><CardDescription id="csv-import-help">Upload a business-finder CSV. Existing Leads match by Google place ID, or business name and city when no place ID exists.</CardDescription></CardHeader>
       <CardContent className="space-y-4">
-        <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={handleSubmit}>
+        <form aria-busy={isImporting} className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={handleSubmit}>
           <label className="grid min-w-0 flex-1 gap-2 text-sm font-medium" htmlFor="lead-csv">CSV file<input accept=".csv,text/csv" aria-describedby="csv-import-help" className="block h-10 w-full cursor-pointer rounded-md border border-input bg-background text-sm text-muted-foreground transition-colors file:mr-3 file:h-full file:border-0 file:border-r file:border-input file:bg-muted file:px-3 file:text-sm file:font-medium file:text-foreground hover:border-primary/50 hover:file:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" disabled={isImporting} id="lead-csv" ref={fileInputRef} type="file" /></label>
           <Button className="sm:shrink-0" disabled={isImporting} type="submit">{isImporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}{isImporting ? 'Importing…' : 'Import Leads'}</Button>
         </form>
-        {message ? <Alert aria-live="polite" className="border-emerald-200 bg-emerald-50 text-emerald-950"><AlertTitle>Import complete</AlertTitle><AlertDescription>{message}</AlertDescription></Alert> : null}
+        {message ? <Alert aria-live="polite" className="border-emerald-200 bg-emerald-50 text-emerald-950" role="status"><AlertTitle>Import complete</AlertTitle><AlertDescription>{message}</AlertDescription></Alert> : null}
         {error ? <Alert className="border-red-200 bg-red-50 text-red-950"><AlertTitle>Import failed</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
       </CardContent>
     </Card>
