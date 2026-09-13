@@ -1,7 +1,7 @@
 import config from '@payload-config'
 import Link from 'next/link'
 import { headers } from 'next/headers'
-import { ArrowLeft, ArrowUpRight, Check, Circle, ExternalLink, ShieldAlert } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, ExternalLink, ShieldAlert } from 'lucide-react'
 import { getPayload, type PayloadRequest } from 'payload'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -13,7 +13,7 @@ import { AiRunControls } from '@/components/admin/AiRunControls'
 import { aiProviders, type AiProvider } from '@/lib/ai-provider-options'
 import { resolveAiSelection } from '@/lib/ai-settings'
 import { modelSuggestions } from '@/lib/ai-model-catalog'
-import { formatReviewStatus, getReviewSteps, type ReviewStepState } from '@/lib/review-workflow'
+import { formatReviewStatus, getReviewSteps } from '@/lib/review-workflow'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,16 +53,14 @@ export default async function LeadReviewPage({ params }: { params: Promise<{ lea
           <div className="flex flex-wrap gap-2"><Badge variant={lead.pipeline_status === 'approved' ? 'success' : lead.pipeline_status === 'qa_failed' ? 'destructive' : 'outline'}>{formatReviewStatus(lead.pipeline_status)}</Badge><Badge variant="outline">Sales: {formatReviewStatus(lead.sales_status)}</Badge></div>
         </header>
         {lead.do_not_contact_at ? <Alert className="border-amber-300 bg-amber-50 text-amber-950"><ShieldAlert className="h-4 w-4" /><AlertTitle>Do Not Contact is active</AlertTitle><AlertDescription>{lead.do_not_contact_reason ?? 'Outreach generation and sending are blocked for this lead.'}</AlertDescription></Alert> : null}
-        <Card><CardHeader className="pb-3"><div className="flex items-center justify-between gap-4"><div><CardTitle>Workflow progress</CardTitle><CardDescription className="mt-1">{completed} of {steps.length} stages complete. The highlighted stage is the next decision.</CardDescription></div><span aria-label={`${Math.round((completed / steps.length) * 100)} percent complete`} className="text-sm font-medium text-muted-foreground">{Math.round((completed / steps.length) * 100)}%</span></div><Progress aria-label="Workflow progress" className="mt-3" value={(completed / steps.length) * 100} /></CardHeader><CardContent><ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-7">{steps.map((step) => <li className="relative" key={step.key}><Step state={step.state} label={step.label} description={step.description} /></li>)}</ol></CardContent></Card>
-
-        <AiRunControls actions={actions} defaultModel={defaultSelection.model} defaultProvider={defaultSelection.provider} providers={[...aiProviders]} suggestions={suggestions} />
+        <div id="review-controls"><AiRunControls actions={actions} completedSteps={completed} defaultModel={defaultSelection.model} defaultProvider={defaultSelection.provider} providers={[...aiProviders]} suggestions={suggestions} workflowSteps={steps} /></div>
         <div className="space-y-6">
           <div className="min-w-0 space-y-6">
             <Card><CardHeader><CardTitle>Lead overview</CardTitle><CardDescription>Source details and contactability used by the pipeline.</CardDescription></CardHeader><CardContent className="grid gap-4 sm:grid-cols-2"><Field label="Address" value={lead.address} /><Field label="Phone" value={lead.phone} /><Field label="Email" value={lead.email} /><Field label="Website" value={lead.website_url} link={lead.website_url} /><Field label="Lead source" value={lead.lead_source} /><Field label="Source revision" value={String(lead.source_revision ?? 1)} /></CardContent></Card>
-            <ProfileCard profile={profile ? toRecord(profile) : undefined} />
-            <DemoCard demoSite={demoSite ? toRecord(demoSite) : undefined} qa={qa} />
-            <QaCard qa={qa} />
-            <OutreachCard outreach={outreach ? toRecord(outreach) : undefined} recipient={lead.email} />
+            <div id="review-profile"><ProfileCard profile={profile ? toRecord(profile) : undefined} /></div>
+            <div id="review-demo"><DemoCard demoSite={demoSite ? toRecord(demoSite) : undefined} qa={qa} /></div>
+            <div id="review-qa"><QaCard qa={qa} /></div>
+            <div id="review-outreach"><OutreachCard outreach={outreach ? toRecord(outreach) : undefined} recipient={lead.email} /></div>
             <Timeline runs={runs.docs.map(toRecord)} />
           </div>
         </div>
@@ -71,7 +69,6 @@ export default async function LeadReviewPage({ params }: { params: Promise<{ lea
   )
 }
 
-function Step({ state, label, description }: { state: ReviewStepState; label: string; description: string }) { return <div className="flex items-start gap-2"><div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${state === 'complete' ? 'border-primary bg-primary text-primary-foreground' : state === 'current' ? 'border-primary text-primary' : 'border-muted-foreground/30 text-muted-foreground'}`}>{state === 'complete' ? <Check className="h-3.5 w-3.5" /> : <Circle className="h-3 w-3" />}</div><div><p className={`text-xs font-semibold ${state === 'current' ? 'text-primary' : ''}`}>{label}</p><p className="mt-0.5 text-[11px] text-muted-foreground">{state === 'blocked' ? 'Blocked' : description}</p></div></div> }
 function Field({ label, value, link }: { label: string; value?: string | null; link?: string | null }) { return <div className="min-w-0"><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm">{value ? link ? <a className="inline-flex items-center gap-1 text-primary hover:underline" href={link} rel="noreferrer" target="_blank">{value}<ExternalLink className="h-3 w-3" /></a> : value : 'Not available'}</dd></div> }
 function ProfileCard({ profile }: { profile?: Record<string, unknown> }) { const services = asArray(profile?.services); const facts = asArray(profile?.verified_facts); const assumptions = asArray(profile?.assumptions); return <Card><CardHeader><CardTitle>Business Profile</CardTitle><CardDescription>Structured interpretation of the supplied lead evidence.</CardDescription></CardHeader><CardContent className="space-y-5">{profile ? <><div className="grid gap-4 sm:grid-cols-2"><Field label="Industry" value={asString(profile.industry)} /><div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Confidence</dt><dd className="mt-2 flex items-center gap-3"><Progress className="max-w-48" value={(asNumber(profile.confidence) ?? 0) * 100} /><span className="text-sm">{Math.round((asNumber(profile.confidence) ?? 0) * 100)}%</span></dd></div></div><List label="Services" items={services.map((item) => asString(item.name)).filter((item): item is string => Boolean(item))} /><List label="Verified facts" items={facts.map((item) => `${asString(item.fact)}${asString(item.source) ? ` · ${asString(item.source)}` : ''}`).filter((item): item is string => Boolean(item))} /><List label="Assumptions" items={assumptions.map((item) => asString(item.assumption)).filter((item): item is string => Boolean(item))} /></> : <EmptyState text="Generate a Business Profile from the approved lead." />}</CardContent></Card> }
 function DemoCard({ demoSite, qa }: { demoSite?: Record<string, unknown>; qa: Record<string, unknown> }) { const screenshots = asRecord(qa.screenshots); return <Card><CardHeader><CardTitle>Demo Site</CardTitle><CardDescription>The generated concept mockup and its publication state.</CardDescription></CardHeader><CardContent>{demoSite ? <div className="space-y-5"><div className="grid gap-4 sm:grid-cols-2"><Field label="Public URL" value={asString(demoSite.slug)} link={asString(demoSite.slug) ? `/demo/${asString(demoSite.slug)}` : undefined} /><Field label="Template" value={`${formatReviewStatus(asString(demoSite.template))} · ${asString(demoSite.template_version) ?? 'current'}`} /><Field label="Content revision" value={String(demoSite.content_revision ?? 1)} /><Field label="Availability" value={demoSite.is_public ? 'Public' : 'Private'} /><Field label="Expires" value={asString(demoSite.expires_at) ? new Date(String(demoSite.expires_at)).toLocaleDateString() : 'No expiry'} /><Field label="Screenshots" value={screenshots ? 'Captured' : 'Not captured'} /></div>{screenshots ? <div className="flex flex-wrap gap-2">{Object.entries(screenshots).filter(([, value]) => typeof value === 'string').map(([name, value]) => <a className="inline-flex items-center gap-1 rounded-md border px-3 py-2 text-xs font-medium transition-colors hover:bg-muted" href={String(value)} key={name} rel="noreferrer" target="_blank">{formatReviewStatus(name)} <ArrowUpRight className="h-3 w-3" /></a>)}</div> : null}</div> : <EmptyState text="Generate demo content to create the Demo Site." />}</CardContent></Card> }

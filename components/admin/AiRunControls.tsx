@@ -8,11 +8,13 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { AiProvider } from '@/lib/ai-provider-options'
+import type { ReviewStep } from '@/lib/review-workflow'
+import { WorkflowProgress } from './WorkflowProgress'
 
 type ActionConfig = { key: string; label: string; endpoint: string; enabled: boolean; disabledReason?: string; confirmMessage?: string }
-type Props = { providers: AiProvider[]; defaultProvider: AiProvider; defaultModel?: string; suggestions: Partial<Record<AiProvider, string[]>>; actions: ActionConfig[] }
+type Props = { providers: AiProvider[]; defaultProvider: AiProvider; defaultModel?: string; suggestions: Partial<Record<AiProvider, string[]>>; actions: ActionConfig[]; workflowSteps: ReviewStep[]; completedSteps: number }
 
-export function AiRunControls({ providers, defaultProvider, defaultModel, suggestions, actions }: Props) {
+export function AiRunControls({ providers, defaultProvider, defaultModel, suggestions, actions, workflowSteps, completedSteps }: Props) {
   const router = useRouter()
   const [provider, setProvider] = useState<AiProvider>(defaultProvider)
   const [model, setModel] = useState(defaultModel ?? '')
@@ -60,13 +62,14 @@ export function AiRunControls({ providers, defaultProvider, defaultModel, sugges
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle className="flex items-center gap-2"><Settings2 className="h-5 w-5 text-primary" /> Run controls</CardTitle>
-            <CardDescription className="mt-2">Run the next pipeline step with the configured AI selection.</CardDescription>
+            <CardTitle className="flex items-center gap-2"><Settings2 className="h-5 w-5 text-primary" /> <span className="sr-only">Run controls</span></CardTitle>
+            <CardDescription className="sr-only">Run the next pipeline step with the configured AI selection.</CardDescription>
           </div>
           <Badge variant="outline">{actions.filter((action) => action.enabled).length} available</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        <WorkflowProgress completed={completedSteps} steps={workflowSteps} />
         <div className="rounded-lg border bg-muted/40 p-4">
           <label className="flex cursor-pointer items-center gap-3 text-sm font-medium"><input checked={useOverride} className="h-4 w-4 accent-primary" onChange={(event) => setUseOverride(event.target.checked)} type="checkbox" /> Override model for this run</label>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
