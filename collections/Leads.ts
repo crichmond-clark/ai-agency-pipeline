@@ -44,7 +44,8 @@ export const Leads: CollectionConfig = {
     { name: 'is_sample_lead', type: 'checkbox', defaultValue: false },
   ],
   hooks: {
-    beforeValidate: [({ data, originalDoc }) => {
+    beforeValidate: [({ data, originalDoc, context }) => {
+      if (originalDoc && data?.pipeline_status === 'approved' && originalDoc.pipeline_status !== 'approved' && !context?.workflowOperation) throw new Error('Pipeline approval must use the approval workflow')
       if (data?.business_name) data.normalized_business_name = data.business_name.trim().toLowerCase().replace(/\s+/g, ' ')
       if (originalDoc && data) {
         const sourceChanged = ['business_name', 'city', 'address', 'phone', 'email', 'website_url', 'website_status', 'source_payload'].some((field) => data[field] !== undefined && data[field] !== originalDoc[field])

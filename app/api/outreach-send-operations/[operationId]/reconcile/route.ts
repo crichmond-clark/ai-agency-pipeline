@@ -23,10 +23,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ ope
   const updated = await payload.update({
     collection: 'outreach-send-operations',
     id: operation.id,
-    data: { state, provider_message_id: input.provider_message_id, active_slot_key: state === 'canceled' ? null : operation.active_slot_key, reconciled_at: new Date().toISOString(), reconciled_by: auth.user.id, reconciliation_evidence: input.evidence.trim() },
+    data: { state, provider_message_id: input.provider_message_id, active_slot_key: state === 'canceled' ? null : operation.active_slot_key, reconciled_at: new Date().toISOString(), reconciled_by: auth.user.id, reconciliation_evidence: input.evidence.trim() }, context: { workflowOperation: 'reconcile' },
   })
   if (state === 'sent') {
-    await payload.update({ collection: 'outreach-messages', id: typeof operation.outreach_message === 'object' ? operation.outreach_message.id : operation.outreach_message, data: { status: 'sent', sent_at: new Date().toISOString() } })
+    await payload.update({ collection: 'outreach-messages', id: typeof operation.outreach_message === 'object' ? operation.outreach_message.id : operation.outreach_message, data: { status: 'sent', sent_at: new Date().toISOString() }, context: { workflowOperation: 'reconcile' } })
     await payload.update({ collection: 'leads', id: typeof operation.lead === 'object' ? operation.lead.id : operation.lead, data: { sales_status: 'contacted', last_contacted_at: new Date().toISOString() } })
   } else {
     await payload.update({ collection: 'outreach-messages', id: typeof operation.outreach_message === 'object' ? operation.outreach_message.id : operation.outreach_message, data: { status: 'draft', send_claimed_at: null, send_idempotency_key: null } })

@@ -27,7 +27,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ dem
     const combinedStatus = deterministic.status === 'passed' && ai.status === 'passed' ? 'passed' : 'failed'
     const qaReport = { ...(typeof demoSite.qa_report === 'object' && demoSite.qa_report ? demoSite.qa_report : {}), status: combinedStatus, deterministic, ai, checked_at: new Date().toISOString() }
 
-    const updatedDemoSite = await payload.update({ collection: 'demo-sites', id: demoSite.id, data: { qa_report: qaReport } })
+    const updatedDemoSite = await payload.update({ collection: 'demo-sites', id: demoSite.id, data: { qa_report: qaReport }, context: { workflowOperation: 'qa' } })
     await payload.update({ collection: 'leads', id: typeof demoSite.lead === 'object' ? demoSite.lead.id : demoSite.lead, data: { pipeline_status: combinedStatus === 'passed' ? 'needs_review' : 'qa_failed' } })
     await recordWorkflowRun(payload, { operation: 'qa_check', status: 'succeeded', lead: typeof demoSite.lead === 'object' ? demoSite.lead.id : demoSite.lead, demo_site: demoSite.id, started_at: startedAt, summary: `QA ${combinedStatus}`, metadata: withAiMetadata(aiSelection) })
 

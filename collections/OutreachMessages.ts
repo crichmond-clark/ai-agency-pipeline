@@ -26,7 +26,8 @@ export const OutreachMessages: CollectionConfig = {
     { name: 'send_claimed_at', type: 'date', admin: { readOnly: true } },
   ],
   hooks: {
-    beforeValidate: [({ data, originalDoc }) => {
+    beforeValidate: [({ data, originalDoc, context }) => {
+      if (originalDoc && ['sending', 'sent'].includes(data?.status as string) && originalDoc.status !== data?.status && !context?.workflowOperation) throw new Error('Sending state must use the outreach workflow')
       if (originalDoc && data) {
         const messageChanged = (data.subject !== undefined && data.subject !== originalDoc.subject) || (data.body !== undefined && data.body !== originalDoc.body) || (data.lead !== undefined && data.lead !== originalDoc.lead) || (data.demo_site !== undefined && data.demo_site !== originalDoc.demo_site)
         if (messageChanged) {

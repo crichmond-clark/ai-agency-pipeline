@@ -27,11 +27,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ out
     if (existingOperation?.state === 'sent') return Response.json({ operation_id: existingOperation.id, state: 'sent', provider_message_id: existingOperation.provider_message_id })
     if (existingOperation && existingOperation.state !== 'failed' && existingOperation.state !== 'canceled') return Response.json({ error: 'An outreach send is already in progress or needs reconciliation', operation_id: existingOperation.id, state: existingOperation.state }, { status: 409 })
 
-    const claimed = await payload.update({ collection: 'outreach-messages', id: outreach.id, data: { status: 'sending', send_idempotency_key: idempotencyKey, send_claimed_at: startedAt } })
+    const claimed = await payload.update({ collection: 'outreach-messages', id: outreach.id, data: { status: 'sending', send_idempotency_key: idempotencyKey, send_claimed_at: startedAt }, context: { workflowOperation: 'send' } })
     const operation = await payload.create({ collection: 'outreach-send-operations', data: { lead: lead.id, outreach_message: outreach.id, purpose: 'initial_outreach', active_slot_key: `initial:${lead.id}`, state: 'dispatching', idempotency_key: idempotencyKey, snapshot: { to: lead.email, subject: outreach.subject, body: outreach.body, demo_site: demoSite?.id, demo_revision: demoSite?.content_revision ?? 1 }, first_dispatched_at: startedAt, last_attempt_at: startedAt } })
     const sendResult = await sendOutreachEmail({ to: lead.email!, subject: outreach.subject, body: outreach.body, idempotencyKey })
     const sentAt = new Date().toISOString()
-    const updatedOutreach = await payload.update({ collection: 'outreach-messages', id: claimed.id, data: { status: 'sent', sent_at: sentAt } })
+    const updatedOutreach = await payload.update({ collection: 'outreach-messages', id: claimed.id, data: { status: 'sent', sent_at: sentAt }, context: { workflowOperation: 'send' } })
     await payload.update({ collection: 'outreach-send-operations', id: operation.id, data: { state: 'sent', provider_message_id: sendResult.providerMessageId, last_attempt_at: sentAt } })
     await payload.create({ collection: 'contact-attempts', data: { lead: lead.id, outreach_message: outreach.id, channel: 'email', sent_at: sentAt, provider: 'resend', provider_message_id: sendResult.providerMessageId, summary: 'Initial outreach email sent' } })
     await payload.update({ collection: 'leads', id: lead.id, data: { sales_status: 'contacted', last_contacted_at: sentAt } })

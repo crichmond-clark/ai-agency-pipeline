@@ -28,7 +28,8 @@ export const DemoSites: CollectionConfig = {
     { name: 'removal_reason', type: 'textarea' },
   ],
   hooks: {
-    beforeValidate: [({ data, originalDoc }) => {
+    beforeValidate: [({ data, originalDoc, context }) => {
+      if (originalDoc && data?.qa_report !== undefined && !context?.workflowOperation) throw new Error('QA reports must use the QA workflow')
       if (originalDoc && data?.content !== undefined && JSON.stringify(data.content) !== JSON.stringify(originalDoc.content)) {
         data.content_revision = (originalDoc.content_revision ?? 1) + 1
         data.qa_report = null
