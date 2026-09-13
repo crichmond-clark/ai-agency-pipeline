@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "payload": "payload",
-    "dev:ai": "cd workers/python && uv run uvicorn app.main:app --env-file .env --reload --port 8000",
+    "dev:ai": "cd workers/python && if [ -f .env ]; then uv run uvicorn app.main:app --env-file .env --reload --port 8000; else uv run uvicorn app.main:app --env-file ../../.env --reload --port 8000; fi",
     "dev:all": "concurrently --kill-others -n next,ai -c blue,green \"npm run dev\" \"npm run dev:ai\""
   },
   "dependencies": {

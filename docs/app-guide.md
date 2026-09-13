@@ -216,7 +216,7 @@ cd workers/python
 uv sync
 ```
 
-Create `workers/python/.env`:
+Create `workers/python/.env` (or use the repository-root `.env`; `npm run dev:ai` detects either file):
 
 ```
 AI_SERVICE_TOKEN=dev-ai-service-token
