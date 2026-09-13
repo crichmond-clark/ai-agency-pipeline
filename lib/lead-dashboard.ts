@@ -11,6 +11,7 @@ export type LeadDashboardSearchParams = {
 }
 
 export type DashboardBadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'
+export const dashboardRelatedRecordLimit = 500
 
 export function parseDashboardPage(value?: string): number {
   const page = Number(value)
@@ -50,4 +51,22 @@ export function statusBadgeVariant(status: string | null | undefined): Dashboard
 
 export function hasActiveDashboardFilters(params: LeadDashboardSearchParams): boolean {
   return Boolean(buildLeadFilters(params))
+}
+
+export function indexLatestByLead<T extends { lead?: unknown }>(documents: T[]): Map<string, T> {
+  const latest = new Map<string, T>()
+  for (const document of documents) {
+    const leadId = relationshipId(document.lead)
+    if (leadId && !latest.has(leadId)) latest.set(leadId, document)
+  }
+  return latest
+}
+
+function relationshipId(value: unknown): string | undefined {
+  if (typeof value === 'string' || typeof value === 'number') return String(value)
+  if (value && typeof value === 'object' && 'id' in value) {
+    const id = (value as { id?: unknown }).id
+    if (typeof id === 'string' || typeof id === 'number') return String(id)
+  }
+  return undefined
 }

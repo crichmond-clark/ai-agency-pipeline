@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildLeadFilters, formatDashboardStatus, hasActiveDashboardFilters, leadDashboardHref, parseDashboardPage, statusBadgeVariant } from '../lib/lead-dashboard'
+import { buildLeadFilters, formatDashboardStatus, hasActiveDashboardFilters, indexLatestByLead, leadDashboardHref, parseDashboardPage, statusBadgeVariant } from '../lib/lead-dashboard'
 
 describe('Lead dashboard presentation helpers', () => {
   it('accepts positive integer pages and defaults invalid values to page one', () => {
@@ -29,5 +29,17 @@ describe('Lead dashboard presentation helpers', () => {
   it('recognizes active filters only when a value is valid', () => {
     expect(hasActiveDashboardFilters({ pipeline_status: 'approved' })).toBe(true)
     expect(hasActiveDashboardFilters({ pipeline_status: 'invalid' })).toBe(false)
+  })
+
+  it('indexes the first newest-sorted related record for each Lead', () => {
+    const newest = { id: 3, lead: 10, started_at: '2026-09-13T12:00:00Z' }
+    const older = { id: 2, lead: { id: 10 }, started_at: '2026-09-12T12:00:00Z' }
+    const other = { id: 1, lead: '11', started_at: '2026-09-11T12:00:00Z' }
+
+    const result = indexLatestByLead<{ id: number; lead?: unknown; started_at?: string }>([newest, older, other, { id: 4 }])
+
+    expect(result.get('10')).toBe(newest)
+    expect(result.get('11')).toBe(other)
+    expect(result.size).toBe(2)
   })
 })

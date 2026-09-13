@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { getPayload, type PayloadRequest, type Where } from 'payload'
 
+import { dashboardRelatedRecordLimit, indexLatestByLead } from '@/lib/lead-dashboard'
 import { ImportLeadsForm } from './ImportLeadsForm'
 
 export const dynamic = 'force-dynamic'
@@ -27,13 +28,14 @@ export default async function DashboardLeadsPage({ searchParams }: { searchParam
   const filters = buildFilters(params)
   const page = parsePage(params.page)
   const leads = await payload.find({ collection: 'leads', where: filters, limit: 25, page, sort: '-updatedAt' })
-  const rows = await Promise.all(leads.docs.map(async (lead) => {
-    const [demos, runs] = await Promise.all([
-      payload.find({ collection: 'demo-sites', where: { lead: { equals: lead.id } }, limit: 1, sort: '-updatedAt' }),
-      payload.find({ collection: 'workflow-runs', where: { lead: { equals: lead.id } }, limit: 1, sort: '-started_at' }),
-    ])
-    return { lead, demoSite: demos.docs[0], workflowRun: runs.docs[0] }
-  }))
+  const leadIds = leads.docs.map((lead) => lead.id)
+  const [demos, runs] = leadIds.length ? await Promise.all([
+    payload.find({ collection: 'demo-sites', where: { lead: { in: leadIds } }, limit: dashboardRelatedRecordLimit, sort: '-updatedAt' }),
+    payload.find({ collection: 'workflow-runs', where: { lead: { in: leadIds } }, limit: dashboardRelatedRecordLimit, sort: '-started_at' }),
+  ]) : [{ docs: [] }, { docs: [] }]
+  const demosByLead = indexLatestByLead(demos.docs)
+  const runsByLead = indexLatestByLead(runs.docs)
+  const rows = leads.docs.map((lead) => ({ lead, demoSite: demosByLead.get(String(lead.id)), workflowRun: runsByLead.get(String(lead.id)) }))
 
   return (
     <main style={{ padding: 32 }}>
