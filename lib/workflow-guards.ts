@@ -6,6 +6,8 @@ export type LeadWorkflowFields = {
   sales_status?: string | null
   do_not_contact_at?: string | null
   email?: string | null
+  approved_demo_site?: string | number | { id?: string | number | null } | null
+  approved_demo_revision?: number | null
 }
 
 export type DemoSiteWorkflowFields = DemoAvailabilityFields & {
@@ -27,6 +29,8 @@ export function getApprovalBlockReason({ lead, demoSite, now = new Date() }: { l
   const availabilityBlock = getDemoAvailabilityBlockReason(demoSite, now)
   if (availabilityBlock) return availabilityBlock
   if (qaStatus(demoSite?.qa_report) !== 'passed') return 'Demo site must have a passing QA report'
+  if (!sameRelatedId(lead.approved_demo_site, demoSite?.id)) return 'Demo site must be the approved demo site'
+  if (lead.approved_demo_revision !== undefined && lead.approved_demo_revision !== null && lead.approved_demo_revision !== (demoSite as { content_revision?: number }).content_revision) return 'Demo site approval is stale'
   if (!sameRelatedId(demoSite?.lead, lead.id)) return 'Demo site must belong to the lead'
   return null
 }
@@ -50,6 +54,8 @@ export function getSendBlockReason({ lead, outreach, demoSite, now = new Date(),
   if (!lead.email) return 'Lead email is required'
   if (outreach.status !== 'reviewed') return 'Outreach message must be reviewed before sending'
   if (outreach.sent_at) return 'Outreach message was already sent'
+  if (demoSite && qaStatus(demoSite.qa_report) !== 'passed') return 'Demo site must have a passing QA report'
+  if (!sameRelatedId(lead.approved_demo_site, demoSite?.id)) return 'Demo site must be the approved demo site'
   const availabilityBlock = getDemoAvailabilityBlockReason(demoSite, now)
   if (availabilityBlock) return availabilityBlock
   if (!sameRelatedId(outreach.lead, lead.id)) return 'Outreach message must belong to the lead'

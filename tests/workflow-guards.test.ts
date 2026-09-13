@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { getApprovalBlockReason, getOutreachReviewBlockReason, getSendBlockReason } from '../lib/workflow-guards'
 
 const now = new Date('2026-05-18T12:00:00.000Z')
-const lead = { id: 1, pipeline_status: 'approved', sales_status: 'not_contacted', email: 'owner@example.com' }
-const demoSite = { id: 2, lead: 1, is_public: true, qa_report: { status: 'passed' } }
+const lead = { id: 1, pipeline_status: 'approved', sales_status: 'not_contacted', email: 'owner@example.com', approved_demo_site: 2, approved_demo_revision: 1 }
+const demoSite = { id: 2, lead: 1, content_revision: 1, is_public: true, qa_report: { status: 'passed' } }
 const outreach = { id: 3, lead: 1, demo_site: 2, status: 'reviewed' }
 
 describe('approval guard', () => {
@@ -62,6 +62,10 @@ describe('send guard', () => {
 
   it('blocks expired demo sites', () => {
     expect(getSendBlockReason({ lead, outreach, demoSite: { ...demoSite, expires_at: '2026-05-18T11:00:00.000Z' }, portfolioMode: false, now })).toBe('Demo site has expired')
+  })
+
+  it('blocks a demo whose current QA has failed', () => {
+    expect(getSendBlockReason({ lead, outreach, demoSite: { ...demoSite, qa_report: { status: 'failed' } }, portfolioMode: false, now })).toBe('Demo site must have a passing QA report')
   })
 
   it('blocks wrong relationships', () => {

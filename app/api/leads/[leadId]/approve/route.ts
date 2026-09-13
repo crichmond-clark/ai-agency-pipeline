@@ -15,6 +15,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ lea
   const blocked = getApprovalBlockReason({ lead: leadToApprove, demoSite })
   if (blocked) return Response.json({ error: blocked }, { status: 409 })
 
-  const lead = await payload.update({ collection: 'leads', id: leadId, data: { pipeline_status: 'approved' } })
+  const lead = await payload.update({ collection: 'leads', id: leadId, data: { pipeline_status: 'approved', approved_demo_site: demoSite.id, approved_demo_revision: (demoSite as { content_revision?: number }).content_revision ?? 1, approved_at: new Date().toISOString(), approved_by: auth.user.id } })
   return Response.json({ lead })
 }

@@ -32,14 +32,32 @@ export const Leads: CollectionConfig = {
     { name: 'sales_status', type: 'select', options: salesStatuses, defaultValue: 'not_contacted', required: true },
     { name: 'demo_creation_approved_at', type: 'date', admin: { readOnly: true } },
     { name: 'demo_creation_approved_by', type: 'relationship', relationTo: 'users', admin: { readOnly: true } },
+    { name: 'source_revision', type: 'number', defaultValue: 1, admin: { readOnly: true } },
+    { name: 'workflow_revision', type: 'number', defaultValue: 1, admin: { readOnly: true } },
+    { name: 'approved_demo_site', type: 'relationship', relationTo: 'demo-sites', admin: { readOnly: true } },
+    { name: 'approved_demo_revision', type: 'number', admin: { readOnly: true } },
+    { name: 'approved_at', type: 'date', admin: { readOnly: true } },
+    { name: 'approved_by', type: 'relationship', relationTo: 'users', admin: { readOnly: true } },
     { name: 'do_not_contact_at', type: 'date' },
     { name: 'do_not_contact_reason', type: 'textarea' },
     { name: 'last_contacted_at', type: 'date', admin: { readOnly: true } },
     { name: 'is_sample_lead', type: 'checkbox', defaultValue: false },
   ],
   hooks: {
-    beforeValidate: [({ data }) => {
+    beforeValidate: [({ data, originalDoc }) => {
       if (data?.business_name) data.normalized_business_name = data.business_name.trim().toLowerCase().replace(/\s+/g, ' ')
+      if (originalDoc && data) {
+        const sourceChanged = ['business_name', 'city', 'address', 'phone', 'email', 'website_url', 'website_status', 'source_payload'].some((field) => data[field] !== undefined && data[field] !== originalDoc[field])
+        if (sourceChanged) {
+          data.source_revision = (originalDoc.source_revision ?? 1) + 1
+          data.workflow_revision = (originalDoc.workflow_revision ?? 1) + 1
+          data.approved_demo_site = null
+          data.approved_demo_revision = null
+          data.approved_at = null
+          data.approved_by = null
+          if (data.pipeline_status === 'approved') data.pipeline_status = 'new'
+        }
+      }
       return data
     }],
   },

@@ -17,6 +17,8 @@ export const DemoSites: CollectionConfig = {
     { name: 'template', type: 'select', options: ['home_services'], defaultValue: 'home_services', required: true },
     { name: 'slug', type: 'text', required: true, unique: true },
     { name: 'content', type: 'json', required: true },
+    { name: 'content_revision', type: 'number', defaultValue: 1, admin: { readOnly: true } },
+    { name: 'template_version', type: 'text', defaultValue: 'home_services.v1', admin: { readOnly: true } },
     { name: 'desktop_screenshot', type: 'upload', relationTo: 'media' },
     { name: 'mobile_screenshot', type: 'upload', relationTo: 'media' },
     { name: 'qa_report', type: 'json' },
@@ -25,4 +27,13 @@ export const DemoSites: CollectionConfig = {
     { name: 'removed_at', type: 'date' },
     { name: 'removal_reason', type: 'textarea' },
   ],
+  hooks: {
+    beforeValidate: [({ data, originalDoc }) => {
+      if (originalDoc && data?.content !== undefined && JSON.stringify(data.content) !== JSON.stringify(originalDoc.content)) {
+        data.content_revision = (originalDoc.content_revision ?? 1) + 1
+        data.qa_report = null
+      }
+      return data
+    }],
+  },
 }

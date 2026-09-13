@@ -20,5 +20,21 @@ export const OutreachMessages: CollectionConfig = {
     { name: 'status', type: 'select', options: ['draft', 'reviewed', 'sent'], defaultValue: 'draft', required: true },
     { name: 'reviewed_at', type: 'date' },
     { name: 'sent_at', type: 'date', admin: { readOnly: true } },
+    { name: 'content_revision', type: 'number', defaultValue: 1, admin: { readOnly: true } },
+    { name: 'reviewed_fingerprint', type: 'text', admin: { readOnly: true } },
   ],
+  hooks: {
+    beforeValidate: [({ data, originalDoc }) => {
+      if (originalDoc && data) {
+        const messageChanged = (data.subject !== undefined && data.subject !== originalDoc.subject) || (data.body !== undefined && data.body !== originalDoc.body) || (data.lead !== undefined && data.lead !== originalDoc.lead) || (data.demo_site !== undefined && data.demo_site !== originalDoc.demo_site)
+        if (messageChanged) {
+          data.content_revision = (originalDoc.content_revision ?? 1) + 1
+          data.status = 'draft'
+          data.reviewed_at = null
+          data.reviewed_fingerprint = null
+        }
+      }
+      return data
+    }],
+  },
 }
