@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 const cardVariants = cva('rounded-xl text-card-foreground', {
   variants: {
     variant: {
-      elevated: 'bg-card shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)]',
+      elevated: 'bg-card shadow-[var(--surface-shadow)]',
       muted: 'bg-muted/55 shadow-none',
       plain: 'bg-transparent shadow-none',
       outlined: 'border border-border bg-card shadow-none',

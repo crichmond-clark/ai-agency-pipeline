@@ -47,16 +47,16 @@ export default async function LeadReviewPage({ params }: { params: Promise<{ lea
 
   return (
     <main className="min-h-screen bg-muted/40">
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-7 px-4 py-6 sm:px-6 lg:space-y-8 lg:px-8 lg:py-8">
         <Link className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground" href="/dashboard/leads"><ArrowLeft className="h-4 w-4" /> Lead dashboard</Link>
-        <header className="flex flex-col gap-4 rounded-xl bg-card p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] sm:flex-row sm:items-start sm:justify-between">
+        <header className="flex flex-col gap-4 rounded-xl bg-card p-6 shadow-[var(--surface-shadow)] sm:flex-row sm:items-start sm:justify-between lg:p-8">
           <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight">{lead.business_name}</h1>{lead.is_sample_lead ? <Badge variant="secondary">Sample lead</Badge> : null}</div><p className="mt-1 text-muted-foreground">{lead.city ?? 'Location unavailable'}{lead.website_status ? ` · ${formatReviewStatus(lead.website_status)} website` : ''}</p></div>
           <div className="flex flex-wrap gap-2"><Badge variant={lead.pipeline_status === 'approved' ? 'success' : lead.pipeline_status === 'qa_failed' ? 'destructive' : 'outline'}>{formatReviewStatus(lead.pipeline_status)}</Badge><Badge variant="outline">Sales: {formatReviewStatus(lead.sales_status)}</Badge></div>
         </header>
         {lead.do_not_contact_at ? <Alert className="border-amber-300 bg-amber-50 text-amber-950"><ShieldAlert className="h-4 w-4" /><AlertTitle>Do Not Contact is active</AlertTitle><AlertDescription>{lead.do_not_contact_reason ?? 'Outreach generation and sending are blocked for this lead.'}</AlertDescription></Alert> : null}
         <div id="review-controls"><AiRunControls actions={actions} completedSteps={completed} defaultModel={defaultSelection.model} defaultProvider={defaultSelection.provider} providers={[...aiProviders]} suggestions={suggestions} workflowSteps={steps} /></div>
-        <div className="space-y-6">
-          <div className="min-w-0 space-y-6">
+        <div className="space-y-7 lg:space-y-8">
+          <div className="min-w-0 space-y-7 lg:space-y-8">
             <Card><CardHeader><CardTitle>Lead overview</CardTitle><CardDescription>Source details and contactability used by the pipeline.</CardDescription></CardHeader><CardContent className="grid gap-4 sm:grid-cols-2"><Field label="Address" value={lead.address} /><Field label="Phone" value={lead.phone} /><Field label="Email" value={lead.email} /><Field label="Website" value={lead.website_url} link={lead.website_url} /><Field label="Lead source" value={lead.lead_source} /><Field label="Source revision" value={String(lead.source_revision ?? 1)} /></CardContent></Card>
             <div id="review-profile"><ProfileCard profile={profile ? toRecord(profile) : undefined} /></div>
             <div id="review-demo"><DemoCard demoSite={demoSite ? toRecord(demoSite) : undefined} leadId={String(lead.id)} publicBlockReason={publicDemoBlockReason} qa={qa} /></div>

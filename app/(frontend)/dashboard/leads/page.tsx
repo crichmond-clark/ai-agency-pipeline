@@ -33,15 +33,15 @@ export default async function DashboardLeadsPage({ searchParams }: { searchParam
 
   return (
     <main className="min-h-screen bg-muted/40">
-      <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-      <header className="flex flex-col gap-4 rounded-xl bg-card p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto max-w-7xl space-y-7 px-4 py-6 sm:px-6 lg:space-y-8 lg:px-8 lg:py-8">
+      <header className="flex flex-col gap-4 rounded-xl bg-card p-6 shadow-[var(--surface-shadow)] sm:flex-row sm:items-center sm:justify-between lg:p-8">
         <div><div className="flex items-center gap-3"><div className="rounded-lg bg-primary/10 p-2 text-primary"><LayoutDashboard className="h-5 w-5" /></div><h1 className="text-2xl font-semibold tracking-tight">Lead dashboard</h1></div><p className="mt-2 text-sm text-muted-foreground">Review imported businesses and move each Lead through the demo workflow.</p></div>
         <div className="text-left sm:text-right"><p className="text-2xl font-semibold">{leads.totalDocs}</p><p className="text-xs uppercase tracking-wide text-muted-foreground">{leads.totalDocs === 1 ? 'Lead' : 'Leads'}</p></div>
       </header>
       <ImportLeadsForm />
       <LeadDashboardFilters params={params} />
       <LeadDashboardResults portfolioMode={process.env.PORTFOLIO_MODE === 'true'} rows={rows} />
-      <nav aria-label="Lead result pages" className="flex flex-col gap-3 rounded-xl bg-card px-4 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] sm:flex-row sm:items-center sm:justify-between">
+      <nav aria-label="Lead result pages" className="flex flex-col gap-3 rounded-xl bg-card px-4 py-3 shadow-[var(--surface-shadow)] sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <p aria-live="polite" className="text-sm text-muted-foreground">Page <span className="font-medium text-foreground">{leads.page}</span> of <span className="font-medium text-foreground">{Math.max(leads.totalPages, 1)}</span></p>
         <div className="flex gap-2">
           {leads.hasPrevPage ? <Link className={buttonVariants({ variant: 'outline', size: 'sm' })} href={leadDashboardHref(params, page - 1)} rel="prev"><ChevronLeft className="h-4 w-4" /> Previous</Link> : <span aria-disabled="true" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'cursor-not-allowed opacity-50')}><ChevronLeft className="h-4 w-4" /> Previous</span>}
