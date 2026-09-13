@@ -131,6 +131,14 @@ Use the action rail on the right (or below the cards on mobile) to run an enable
 
 The review workspace uses local shadcn-style primitives in `components/ui` and Tailwind utility classes. New controls should reuse those primitives so focus, hover, disabled, and destructive states remain consistent.
 
+## Lead Dashboard
+
+Open `/dashboard/leads` to view imported Leads. The header shows the number of Leads matching the current filters. Pipeline, sales, and Demo Creation Approval filters use URL query parameters, so filtered pages can be bookmarked and pagination preserves the active selection.
+
+Wide screens use a compact five-column table. Laptop, tablet, and mobile widths use Lead cards so names, statuses, workflow errors, and actions remain readable. Every result links to its review workspace. Generated Demo Sites link to the authenticated Admin preview; public availability is shown separately because private, expired, removed, and Portfolio Mode restricted demos are intentionally unavailable through `/demo/[slug]`.
+
+CSV import remains a manual Admin action. Select a business-finder CSV and choose **Import Leads**; completion or failure is announced in the import Card and the Lead list refreshes after a successful import.
+
 ---
 
 ## AI Provider System

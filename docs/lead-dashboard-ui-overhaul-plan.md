@@ -1,5 +1,7 @@
 # Lead Dashboard UI Overhaul Plan
 
+Status: implemented and reviewed on `codex/lead-dashboard-ui-overhaul`.
+
 ## Table of Contents
 
 - [1. Problem Statement](#1-problem-statement)
