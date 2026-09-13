@@ -2,6 +2,11 @@
 
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
+import { FileSpreadsheet, Loader2, Upload } from 'lucide-react'
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 type ImportResult = {
   created: number
@@ -53,17 +58,16 @@ export function ImportLeadsForm() {
   }
 
   return (
-    <section style={{ border: '1px solid #ddd', borderRadius: 8, marginBottom: 24, padding: 16 }}>
-      <h2 style={{ marginTop: 0 }}>Import leads from CSV</h2>
-      <p style={{ color: '#555', marginTop: 0 }}>
-        Upload a business-finder CSV. Existing leads are updated by Google place ID, or by business name + city when no place ID exists.
-      </p>
-      <form onSubmit={handleSubmit} style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-        <input accept=".csv,text/csv" disabled={isImporting} ref={fileInputRef} type="file" />
-        <button disabled={isImporting} type="submit">{isImporting ? 'Importing…' : 'Import leads'}</button>
-      </form>
-      {message ? <p style={{ color: 'green', marginBottom: 0 }}>{message}</p> : null}
-      {error ? <p style={{ color: 'crimson', marginBottom: 0 }}>{error}</p> : null}
-    </section>
+    <Card>
+      <CardHeader className="pb-4"><CardTitle className="flex items-center gap-2 text-base"><FileSpreadsheet className="h-4 w-4 text-primary" /> Import Leads</CardTitle><CardDescription id="csv-import-help">Upload a business-finder CSV. Existing Leads match by Google place ID, or business name and city when no place ID exists.</CardDescription></CardHeader>
+      <CardContent className="space-y-4">
+        <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={handleSubmit}>
+          <label className="grid min-w-0 flex-1 gap-2 text-sm font-medium" htmlFor="lead-csv">CSV file<input accept=".csv,text/csv" aria-describedby="csv-import-help" className="block h-10 w-full cursor-pointer rounded-md border border-input bg-background text-sm text-muted-foreground transition-colors file:mr-3 file:h-full file:border-0 file:border-r file:border-input file:bg-muted file:px-3 file:text-sm file:font-medium file:text-foreground hover:border-primary/50 hover:file:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" disabled={isImporting} id="lead-csv" ref={fileInputRef} type="file" /></label>
+          <Button className="sm:shrink-0" disabled={isImporting} type="submit">{isImporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}{isImporting ? 'Importing…' : 'Import Leads'}</Button>
+        </form>
+        {message ? <Alert aria-live="polite" className="border-emerald-200 bg-emerald-50 text-emerald-950"><AlertTitle>Import complete</AlertTitle><AlertDescription>{message}</AlertDescription></Alert> : null}
+        {error ? <Alert className="border-red-200 bg-red-50 text-red-950"><AlertTitle>Import failed</AlertTitle><AlertDescription>{error}</AlertDescription></Alert> : null}
+      </CardContent>
+    </Card>
   )
 }
