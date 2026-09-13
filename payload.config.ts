@@ -10,6 +10,7 @@ import { DemoSites } from './collections/DemoSites'
 import { Leads } from './collections/Leads'
 import { Media } from './collections/Media'
 import { OutreachMessages } from './collections/OutreachMessages'
+import { OutreachSendOperations } from './collections/OutreachSendOperations'
 import { Users } from './collections/Users'
 import { WorkflowRuns } from './collections/WorkflowRuns'
 import { AiSettings } from './globals/AiSettings'
@@ -23,7 +24,7 @@ export default buildConfig({
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },
   },
-  collections: [Users, Leads, BusinessProfiles, DemoSites, OutreachMessages, ContactAttempts, WorkflowRuns, Media],
+  collections: [Users, Leads, BusinessProfiles, DemoSites, OutreachMessages, OutreachSendOperations, ContactAttempts, WorkflowRuns, Media],
   globals: [AiSettings],
   db: postgresAdapter({ pool: { connectionString: requiredEnv('DATABASE_URI') } }),
   editor: lexicalEditor(),
