@@ -1,130 +1,90 @@
 import config from '@payload-config'
 import Link from 'next/link'
 import { headers } from 'next/headers'
+import { ArrowLeft, Check, Circle, ExternalLink, ShieldAlert } from 'lucide-react'
 import { getPayload, type PayloadRequest } from 'payload'
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
 import { AiRunControls } from '@/components/admin/AiRunControls'
 import { aiProviders, type AiProvider } from '@/lib/ai-provider-options'
 import { resolveAiSelection } from '@/lib/ai-settings'
 import { modelSuggestions } from '@/lib/ai-model-catalog'
+import { formatReviewStatus, getReviewSteps, type ReviewStepState } from '@/lib/review-workflow'
 
 export const dynamic = 'force-dynamic'
 
 export default async function LeadReviewPage({ params }: { params: Promise<{ leadId: string }> }) {
   const payload = await getPayload({ config })
   const auth = await payload.auth({ canSetHeaders: false, headers: await headers(), req: { payload } as PayloadRequest })
-  if (!auth.user) return <main><h1>Unauthorized</h1></main>
+  if (!auth.user) return <main className="p-8"><h1>Unauthorized</h1></main>
 
   const { leadId } = await params
   const lead = await payload.findByID({ collection: 'leads', id: leadId })
   const globalPayload = payload as unknown as { findGlobal(args: { slug: string }): Promise<unknown> }
-  const [profiles, demos, outreachMessages, settings] = await Promise.all([
+  const [profiles, demos, outreachMessages, runs, settings] = await Promise.all([
     payload.find({ collection: 'business-profiles', where: { lead: { equals: lead.id } }, limit: 1, sort: '-updatedAt' }),
     payload.find({ collection: 'demo-sites', where: { lead: { equals: lead.id } }, limit: 1, sort: '-updatedAt' }),
     payload.find({ collection: 'outreach-messages', where: { lead: { equals: lead.id } }, limit: 1, sort: '-updatedAt' }),
+    payload.find({ collection: 'workflow-runs', where: { lead: { equals: lead.id } }, limit: 12, sort: '-started_at' }),
     globalPayload.findGlobal({ slug: 'ai-settings' }).catch(() => ({})),
   ])
   const profile = profiles.docs[0]
   const demoSite = demos.docs[0]
   const outreach = outreachMessages.docs[0]
+  const qa = asRecord(demoSite?.qa_report)
+  const qaStatus = typeof qa?.status === 'string' ? qa.status : undefined
+  const steps = getReviewSteps({ demoApproved: Boolean(lead.demo_creation_approved_at), hasProfile: Boolean(profile), hasDemo: Boolean(demoSite), qaStatus, pipelineStatus: lead.pipeline_status, hasOutreach: Boolean(outreach), outreachStatus: outreach?.status, doNotContact: Boolean(lead.do_not_contact_at), salesStatus: lead.sales_status })
   const defaultSelection = await resolveAiSelection(payload, 'profile')
   const cache = (settings as { provider_model_cache?: Partial<Record<AiProvider, string[]>> }).provider_model_cache
   const suggestions = Object.fromEntries(aiProviders.map((provider) => [provider, modelSuggestions(provider, cache)])) as Partial<Record<AiProvider, string[]>>
-
-  const actions = [
-    {
-      key: 'approve-demo-creation',
-      label: 'Approve Demo Creation',
-      endpoint: `/api/leads/${lead.id}/approve-demo-creation`,
-      enabled: !lead.demo_creation_approved_at,
-      disabledReason: lead.demo_creation_approved_at ? 'Already approved' : undefined,
-    },
-    {
-      key: 'profile',
-      label: 'Generate Profile',
-      endpoint: `/api/leads/${lead.id}/generate-profile`,
-      enabled: Boolean(lead.demo_creation_approved_at),
-      disabledReason: lead.demo_creation_approved_at ? undefined : 'Demo Creation Approval required',
-    },
-    {
-      key: 'demo-content',
-      label: 'Generate Demo Content',
-      endpoint: `/api/leads/${lead.id}/generate-demo-content`,
-      enabled: Boolean(lead.demo_creation_approved_at && profile),
-      disabledReason: !lead.demo_creation_approved_at ? 'Demo Creation Approval required' : profile ? undefined : 'Business Profile required',
-    },
-    {
-      key: 'qa',
-      label: 'Run QA',
-      endpoint: demoSite ? `/api/demo-sites/${demoSite.id}/run-qa` : '#',
-      enabled: Boolean(demoSite),
-      disabledReason: demoSite ? undefined : 'Demo Site required',
-    },
-    {
-      key: 'capture',
-      label: 'Capture Screenshots',
-      endpoint: demoSite ? `/api/demo-sites/${demoSite.id}/capture-screenshots` : '#',
-      enabled: Boolean(demoSite),
-      disabledReason: demoSite ? undefined : 'Demo Site required',
-    },
-    {
-      key: 'approve',
-      label: 'Approve Demo',
-      endpoint: `/api/leads/${lead.id}/approve`,
-      enabled: lead.pipeline_status === 'needs_review',
-      disabledReason: lead.pipeline_status === 'needs_review' ? undefined : 'Passing QA and needs_review status required',
-    },
-    {
-      key: 'reject',
-      label: 'Reject Demo',
-      endpoint: `/api/leads/${lead.id}/reject`,
-      enabled: lead.pipeline_status === 'needs_review',
-      disabledReason: lead.pipeline_status === 'needs_review' ? undefined : 'Lead must be in needs_review',
-    },
-    {
-      key: 'outreach',
-      label: 'Generate Outreach Draft',
-      endpoint: `/api/leads/${lead.id}/generate-outreach-draft`,
-      enabled: Boolean(lead.pipeline_status === 'approved' && demoSite && !lead.do_not_contact_at),
-      disabledReason: outreachDisabledReason(lead.pipeline_status, Boolean(demoSite), Boolean(lead.do_not_contact_at)),
-    },
-    {
-      key: 'mark-reviewed',
-      label: 'Mark Outreach Reviewed',
-      endpoint: outreach ? `/api/outreach-messages/${outreach.id}/mark-reviewed` : '#',
-      enabled: Boolean(outreach?.status === 'draft'),
-      disabledReason: outreach ? outreach.status === 'draft' ? undefined : 'Draft must be editable' : 'Outreach Draft required',
-    },
-    {
-      key: 'send',
-      label: 'Send Outreach',
-      endpoint: outreach ? `/api/outreach-messages/${outreach.id}/send` : '#',
-      enabled: Boolean(outreach?.status === 'reviewed'),
-      disabledReason: outreach ? outreach.status === 'reviewed' ? undefined : 'Review the draft first' : 'Outreach Draft required',
-    },
-  ]
+  const actions = buildActions(toRecord(lead), profile ? toRecord(profile) : undefined, demoSite ? toRecord(demoSite) : undefined, outreach ? toRecord(outreach) : undefined)
+  const completed = steps.filter((step) => step.state === 'complete').length
 
   return (
-    <main style={{ padding: 32 }}>
-      <p><Link href="/dashboard/leads">← Lead dashboard</Link></p>
-      <h1>{lead.business_name}</h1>
-      <dl style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 8 }}>
-        <dt>City</dt><dd>{lead.city ?? '—'}</dd>
-        <dt>Pipeline status</dt><dd>{lead.pipeline_status}</dd>
-        <dt>Sales status</dt><dd>{lead.sales_status}</dd>
-        <dt>Demo approved</dt><dd>{lead.demo_creation_approved_at ? 'yes' : 'no'}</dd>
-        <dt>Business Profile</dt><dd>{profile ? `#${profile.id}` : 'missing'}</dd>
-        <dt>Demo Site</dt><dd>{demoSite ? <Link href={`/demo/${demoSite.slug}`}>{demoSite.slug}</Link> : 'missing'}</dd>
-        <dt>Outreach Draft</dt><dd>{outreach ? `#${outreach.id} (${outreach.status})` : 'missing'}</dd>
-      </dl>
-      <AiRunControls actions={actions} defaultModel={defaultSelection.model} defaultProvider={defaultSelection.provider} providers={[...aiProviders]} suggestions={suggestions} />
+    <main className="min-h-screen bg-muted/40">
+      <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+        <Link className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground" href="/dashboard/leads"><ArrowLeft className="h-4 w-4" /> Lead dashboard</Link>
+        <header className="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm sm:flex-row sm:items-start sm:justify-between">
+          <div><div className="flex flex-wrap items-center gap-2"><h1 className="text-2xl font-semibold tracking-tight">{lead.business_name}</h1>{lead.is_sample_lead ? <Badge variant="secondary">Sample lead</Badge> : null}</div><p className="mt-1 text-muted-foreground">{lead.city ?? 'Location unavailable'}{lead.website_status ? ` · ${formatReviewStatus(lead.website_status)} website` : ''}</p></div>
+          <div className="flex flex-wrap gap-2"><Badge variant={lead.pipeline_status === 'approved' ? 'success' : lead.pipeline_status === 'qa_failed' ? 'destructive' : 'outline'}>{formatReviewStatus(lead.pipeline_status)}</Badge><Badge variant="outline">Sales: {formatReviewStatus(lead.sales_status)}</Badge></div>
+        </header>
+        {lead.do_not_contact_at ? <Alert className="border-amber-300 bg-amber-50 text-amber-950"><ShieldAlert className="h-4 w-4" /><AlertTitle>Do Not Contact is active</AlertTitle><AlertDescription>{lead.do_not_contact_reason ?? 'Outreach generation and sending are blocked for this lead.'}</AlertDescription></Alert> : null}
+        <Card><CardHeader className="pb-3"><div className="flex items-center justify-between gap-4"><div><CardTitle>Workflow progress</CardTitle><CardDescription className="mt-1">{completed} of {steps.length} stages complete. The highlighted stage is the next decision.</CardDescription></div><span className="text-sm font-medium text-muted-foreground">{Math.round((completed / steps.length) * 100)}%</span></div><Progress aria-label="Workflow progress" className="mt-3" value={(completed / steps.length) * 100} /></CardHeader><CardContent><ol className="grid gap-3 md:grid-cols-7">{steps.map((step) => <li className="relative" key={step.key}><Step state={step.state} label={step.label} description={step.description} /></li>)}</ol></CardContent></Card>
+
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="min-w-0 space-y-6">
+            <Card><CardHeader><CardTitle>Lead overview</CardTitle><CardDescription>Source details and contactability used by the pipeline.</CardDescription></CardHeader><CardContent className="grid gap-4 sm:grid-cols-2"><Field label="Address" value={lead.address} /><Field label="Phone" value={lead.phone} /><Field label="Email" value={lead.email} /><Field label="Website" value={lead.website_url} link={lead.website_url} /><Field label="Lead source" value={lead.lead_source} /><Field label="Source revision" value={String(lead.source_revision ?? 1)} /></CardContent></Card>
+            <ProfileCard profile={profile ? toRecord(profile) : undefined} />
+            <DemoCard demoSite={demoSite ? toRecord(demoSite) : undefined} qa={qa} />
+            <QaCard qa={qa} />
+            <OutreachCard outreach={outreach ? toRecord(outreach) : undefined} recipient={lead.email} />
+            <Timeline runs={runs.docs.map(toRecord)} />
+          </div>
+          <aside className="lg:sticky lg:top-6 lg:self-start"><AiRunControls actions={actions} defaultModel={defaultSelection.model} defaultProvider={defaultSelection.provider} providers={[...aiProviders]} suggestions={suggestions} /></aside>
+        </div>
+      </div>
     </main>
   )
 }
 
-function outreachDisabledReason(pipelineStatus: string | null | undefined, hasDemo: boolean, doNotContact: boolean): string | undefined {
-  if (doNotContact) return 'Lead is marked do not contact'
-  if (pipelineStatus !== 'approved') return 'Lead must be approved'
-  if (!hasDemo) return 'Available Demo Site required'
-  return undefined
-}
+function Step({ state, label, description }: { state: ReviewStepState; label: string; description: string }) { return <div className="flex items-start gap-2"><div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${state === 'complete' ? 'border-primary bg-primary text-primary-foreground' : state === 'current' ? 'border-primary text-primary' : 'border-muted-foreground/30 text-muted-foreground'}`}>{state === 'complete' ? <Check className="h-3.5 w-3.5" /> : <Circle className="h-3 w-3" />}</div><div><p className={`text-xs font-semibold ${state === 'current' ? 'text-primary' : ''}`}>{label}</p><p className="mt-0.5 text-[11px] text-muted-foreground">{state === 'blocked' ? 'Blocked' : description}</p></div></div> }
+function Field({ label, value, link }: { label: string; value?: string | null; link?: string | null }) { return <div className="min-w-0"><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm">{value ? link ? <a className="inline-flex items-center gap-1 text-primary hover:underline" href={link} rel="noreferrer" target="_blank">{value}<ExternalLink className="h-3 w-3" /></a> : value : 'Not available'}</dd></div> }
+function ProfileCard({ profile }: { profile?: Record<string, unknown> }) { const services = asArray(profile?.services); const facts = asArray(profile?.verified_facts); const assumptions = asArray(profile?.assumptions); return <Card><CardHeader><CardTitle>Business Profile</CardTitle><CardDescription>Structured interpretation of the supplied lead evidence.</CardDescription></CardHeader><CardContent className="space-y-5">{profile ? <><div className="grid gap-4 sm:grid-cols-2"><Field label="Industry" value={asString(profile.industry)} /><div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Confidence</dt><dd className="mt-2 flex items-center gap-3"><Progress className="max-w-48" value={(asNumber(profile.confidence) ?? 0) * 100} /><span className="text-sm">{Math.round((asNumber(profile.confidence) ?? 0) * 100)}%</span></dd></div></div><List label="Services" items={services.map((item) => asString(item.name)).filter((item): item is string => Boolean(item))} /><List label="Verified facts" items={facts.map((item) => `${asString(item.fact)}${asString(item.source) ? ` · ${asString(item.source)}` : ''}`).filter((item): item is string => Boolean(item))} /><List label="Assumptions" items={assumptions.map((item) => asString(item.assumption)).filter((item): item is string => Boolean(item))} /></> : <EmptyState text="Generate a Business Profile from the approved lead." />}</CardContent></Card> }
+function DemoCard({ demoSite, qa }: { demoSite?: Record<string, unknown>; qa: Record<string, unknown> }) { const screenshots = asRecord(qa.screenshots); return <Card><CardHeader><CardTitle>Demo Site</CardTitle><CardDescription>The generated concept mockup and its publication state.</CardDescription></CardHeader><CardContent>{demoSite ? <div className="grid gap-4 sm:grid-cols-2"><Field label="Public URL" value={asString(demoSite.slug)} link={asString(demoSite.slug) ? `/demo/${asString(demoSite.slug)}` : undefined} /><Field label="Template" value={`${formatReviewStatus(asString(demoSite.template))} · ${asString(demoSite.template_version) ?? 'current'}`} /><Field label="Content revision" value={String(demoSite.content_revision ?? 1)} /><Field label="Availability" value={demoSite.is_public ? 'Public' : 'Private'} /><Field label="Expires" value={asString(demoSite.expires_at) ? new Date(String(demoSite.expires_at)).toLocaleDateString() : 'No expiry'} /><Field label="Screenshots" value={screenshots ? 'Captured' : 'Not captured'} /></div> : <EmptyState text="Generate demo content to create the Demo Site." />}</CardContent></Card> }
+function QaCard({ qa }: { qa: Record<string, unknown> }) { const findings = asArray(qa.findings); return <Card><CardHeader><CardTitle>QA report</CardTitle><CardDescription>Deterministic and AI checks for the current Demo Site revision.</CardDescription></CardHeader><CardContent>{Object.keys(qa).length ? <><div className="mb-4 flex flex-wrap items-center gap-2"><Badge variant={qa.status === 'passed' ? 'success' : 'destructive'}>{formatReviewStatus(asString(qa.status))}</Badge><span className="text-xs text-muted-foreground">Checked {asString(qa.checked_at) ? new Date(String(qa.checked_at)).toLocaleString() : 'time unavailable'}</span></div>{findings.length ? <ul className="space-y-2">{findings.map((finding, index) => <li className="rounded-md border p-3 text-sm" key={index}>{asString(finding.message) ?? 'QA finding'}</li>)}</ul> : <p className="text-sm text-muted-foreground">No findings recorded.</p>}</> : <EmptyState text="Run QA after the Demo Site is available." />}</CardContent></Card> }
+function OutreachCard({ outreach, recipient }: { outreach?: Record<string, unknown>; recipient?: string | null }) { return <Card><CardHeader><CardTitle>Outreach Draft</CardTitle><CardDescription>Review the exact message before any contact attempt.</CardDescription></CardHeader><CardContent>{outreach ? <div className="space-y-4"><Field label="Recipient" value={recipient} /><Field label="Subject" value={asString(outreach.subject)} /><div><dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Body</dt><dd className="mt-2 whitespace-pre-wrap break-words rounded-md bg-muted/50 p-4 text-sm leading-6">{asString(outreach.body) ?? 'Not available'}</dd></div><Field label="Status" value={formatReviewStatus(asString(outreach.status))} /><Field label="Content revision" value={String(outreach.content_revision ?? 1)} /></div> : <EmptyState text="Generate an Outreach Draft after approving the Demo Site." />}</CardContent></Card> }
+function Timeline({ runs }: { runs: Array<Record<string, unknown>> }) { return <Card><CardHeader><CardTitle>Activity</CardTitle><CardDescription>Recent workflow runs for this lead.</CardDescription></CardHeader><CardContent>{runs.length ? <div className="space-y-4">{runs.map((run, index) => <div className="flex gap-3" key={String(run.id ?? index)}><div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" /><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className="text-sm font-medium">{formatReviewStatus(asString(run.operation))}</span><Badge variant={run.status === 'succeeded' ? 'success' : run.status === 'failed' ? 'destructive' : 'outline'}>{formatReviewStatus(asString(run.status))}</Badge></div><p className="mt-1 text-xs text-muted-foreground">{asString(run.summary) ?? asString(run.error) ?? 'No summary'} · {asString(run.started_at) ? new Date(String(run.started_at)).toLocaleString() : 'time unavailable'}</p>{index < runs.length - 1 ? <Separator className="mt-4" /> : null}</div></div>)}</div> : <p className="text-sm text-muted-foreground">No workflow activity recorded yet.</p>}</CardContent></Card> }
+function List({ label, items }: { label: string; items: string[] }) { return <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>{items.length ? <ul className="mt-2 grid gap-2 sm:grid-cols-2">{items.map((item, index) => <li className="rounded-md border bg-muted/20 px-3 py-2 text-sm" key={`${item}-${index}`}>{item}</li>)}</ul> : <p className="mt-1 text-sm text-muted-foreground">None recorded.</p>}</div> }
+function EmptyState({ text }: { text: string }) { return <div className="rounded-lg border border-dashed bg-muted/20 p-5 text-sm text-muted-foreground">{text}</div> }
+function asRecord(value: unknown): Record<string, unknown> { return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {} }
+function toRecord(value: unknown): Record<string, unknown> { return asRecord(value) }
+function asArray(value: unknown): Array<Record<string, unknown>> { return Array.isArray(value) ? value.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object') : [] }
+function asString(value: unknown): string | undefined { return typeof value === 'string' && value ? value : undefined }
+function asNumber(value: unknown): number | undefined { return typeof value === 'number' && Number.isFinite(value) ? value : undefined }
+
+function buildActions(lead: Record<string, unknown>, profile: Record<string, unknown> | undefined, demoSite: Record<string, unknown> | undefined, outreach: Record<string, unknown> | undefined) { const id = String(lead.id); return [{ key: 'approve-demo-creation', label: 'Approve Demo Creation', endpoint: `/api/leads/${id}/approve-demo-creation`, enabled: !lead.demo_creation_approved_at, disabledReason: lead.demo_creation_approved_at ? 'Already approved' : undefined }, { key: 'profile', label: 'Generate Profile', endpoint: `/api/leads/${id}/generate-profile`, enabled: Boolean(lead.demo_creation_approved_at), disabledReason: lead.demo_creation_approved_at ? undefined : 'Demo Creation Approval required' }, { key: 'demo-content', label: 'Generate Demo Content', endpoint: `/api/leads/${id}/generate-demo-content`, enabled: Boolean(lead.demo_creation_approved_at && profile), disabledReason: !lead.demo_creation_approved_at ? 'Demo Creation Approval required' : profile ? undefined : 'Business Profile required' }, { key: 'qa', label: 'Run QA', endpoint: demoSite ? `/api/demo-sites/${demoSite.id}/run-qa` : '#', enabled: Boolean(demoSite), disabledReason: demoSite ? undefined : 'Demo Site required' }, { key: 'capture', label: 'Capture Screenshots', endpoint: demoSite ? `/api/demo-sites/${demoSite.id}/capture-screenshots` : '#', enabled: Boolean(demoSite), disabledReason: demoSite ? undefined : 'Demo Site required' }, { key: 'approve', label: 'Approve Demo', endpoint: `/api/leads/${id}/approve`, enabled: lead.pipeline_status === 'needs_review', disabledReason: lead.pipeline_status === 'needs_review' ? undefined : 'Passing QA and needs_review status required' }, { key: 'reject', label: 'Reject Demo', endpoint: `/api/leads/${id}/reject`, enabled: lead.pipeline_status === 'needs_review', disabledReason: lead.pipeline_status === 'needs_review' ? undefined : 'Lead must be in needs_review' }, { key: 'outreach', label: 'Generate Outreach Draft', endpoint: `/api/leads/${id}/generate-outreach-draft`, enabled: Boolean(lead.pipeline_status === 'approved' && demoSite && !lead.do_not_contact_at), disabledReason: outreachReason(lead.pipeline_status as string, Boolean(demoSite), Boolean(lead.do_not_contact_at)) }, { key: 'mark-reviewed', label: 'Mark Outreach Reviewed', endpoint: outreach ? `/api/outreach-messages/${outreach.id}/mark-reviewed` : '#', enabled: outreach?.status === 'draft', disabledReason: outreach ? outreach.status === 'draft' ? undefined : 'Draft must be editable' : 'Outreach Draft required' }, { key: 'send', label: 'Send Outreach', endpoint: outreach ? `/api/outreach-messages/${outreach.id}/send` : '#', enabled: outreach?.status === 'reviewed', disabledReason: outreach ? outreach.status === 'reviewed' ? undefined : 'Review the draft first' : 'Outreach Draft required' }] }
+function outreachReason(status: string, hasDemo: boolean, doNotContact: boolean): string { if (doNotContact) return 'Lead is marked do not contact'; if (status !== 'approved') return 'Lead must be approved'; if (!hasDemo) return 'Available Demo Site required'; return 'Ready to generate' }
