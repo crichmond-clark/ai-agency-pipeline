@@ -233,7 +233,7 @@ Create a PostgreSQL database called `ai_agency_pipeline` (or whatever your `DATA
 
 ```bash
 cd workers/python
-uv run uvicorn app.main:app --reload --port 8000
+uv run uvicorn app.main:app --env-file .env --reload --port 8000
 ```
 
 **Terminal 2 — Next.js/Payload app:**
