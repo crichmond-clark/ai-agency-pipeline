@@ -139,6 +139,17 @@ Wide screens use a compact five-column table. Laptop, tablet, and mobile widths 
 
 CSV import remains a manual Admin action. Select a business-finder CSV and choose **Import Leads**; completion or failure is announced in the import Card and the Lead list refreshes after a successful import.
 
+## UI Surface Hierarchy
+
+Dashboard pages use whitespace, background tone, and elevation for structural hierarchy. Reuse the Card variants consistently:
+
+- `elevated` is the default for major page sections such as workflow, filters, results, and evidence.
+- `muted` groups supporting or nested information without creating another floating panel.
+- `plain` provides Card spacing and semantics where the page background already supplies enough separation.
+- `outlined` is reserved for content that specifically needs a visible boundary.
+
+Do not add borders to every section. Keep visible borders for form controls, outline buttons, warnings, confirmations, and selected or focused states. Lists and secondary details should normally use spacing or a muted background. Interactive surfaces must retain clear hover, pressed, focus-visible, disabled, and reduced-motion behavior.
+
 ---
 
 ## AI Provider System

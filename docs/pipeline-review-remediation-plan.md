@@ -1,6 +1,6 @@
 # Pipeline Review Remediation Plan
 
-Status: implementation in progress. Phases 1–5, 6 (privacy slice), 7 (styling slice), 8 (workflow controls slice), and 9 (CI/README slice) have partial commits on sequential feature branches. The lead review workspace redesign is implemented on sequential `codex/review-ui-v2-*` branches, and the responsive Lead dashboard is implemented on `codex/lead-dashboard-ui-overhaul`. Full phase completion still requires the remaining integration tests, migration rehearsals, artifact migration, and release review described below.
+Status: implementation in progress. Phases 1–5, 6 (privacy slice), 7 (styling slice), 8 (workflow controls slice), and 9 (CI/README slice) have partial commits on sequential feature branches. The lead review workspace redesign is implemented on sequential `codex/review-ui-v2-*` branches, the responsive Lead dashboard is implemented on `codex/lead-dashboard-ui-overhaul`, and the shared borderless surface hierarchy is implemented on `codex/ui-surface-hierarchy`. Full phase completion still requires the remaining integration tests, migration rehearsals, artifact migration, and release review described below.
 
 Source: [13 September codebase review](codebase-review-2026-09-13.md), reviewed commit `e11c889` on `feature/ai-demo-pipeline`.
 
