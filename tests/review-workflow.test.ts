@@ -21,6 +21,12 @@ describe('review workflow', () => {
     expect(steps.find((step) => step.key === 'send')?.state).toBe('blocked')
   })
 
+  it('only exposes sending as the current step for an approved reviewed draft', () => {
+    const steps = getReviewSteps({ demoApproved: true, hasProfile: true, hasDemo: true, qaStatus: 'passed', pipelineStatus: 'approved', hasOutreach: true, outreachStatus: 'reviewed', doNotContact: false, salesStatus: 'not_contacted' })
+    expect(steps.find((step) => step.key === 'outreach')?.state).toBe('complete')
+    expect(steps.find((step) => step.key === 'send')?.state).toBe('current')
+  })
+
   it('humanizes persisted statuses and handles missing values', () => {
     expect(formatReviewStatus('demo_content_ready')).toBe('Demo Content Ready')
     expect(formatReviewStatus(null)).toBe('Not available')
