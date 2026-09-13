@@ -33,6 +33,13 @@ export default async function LeadReviewPage({ params }: { params: Promise<{ lea
 
   const actions = [
     {
+      key: 'approve-demo-creation',
+      label: 'Approve Demo Creation',
+      endpoint: `/api/leads/${lead.id}/approve-demo-creation`,
+      enabled: !lead.demo_creation_approved_at,
+      disabledReason: lead.demo_creation_approved_at ? 'Already approved' : undefined,
+    },
+    {
       key: 'profile',
       label: 'Generate Profile',
       endpoint: `/api/leads/${lead.id}/generate-profile`,
@@ -54,11 +61,46 @@ export default async function LeadReviewPage({ params }: { params: Promise<{ lea
       disabledReason: demoSite ? undefined : 'Demo Site required',
     },
     {
+      key: 'capture',
+      label: 'Capture Screenshots',
+      endpoint: demoSite ? `/api/demo-sites/${demoSite.id}/capture-screenshots` : '#',
+      enabled: Boolean(demoSite),
+      disabledReason: demoSite ? undefined : 'Demo Site required',
+    },
+    {
+      key: 'approve',
+      label: 'Approve Demo',
+      endpoint: `/api/leads/${lead.id}/approve`,
+      enabled: lead.pipeline_status === 'needs_review',
+      disabledReason: lead.pipeline_status === 'needs_review' ? undefined : 'Passing QA and needs_review status required',
+    },
+    {
+      key: 'reject',
+      label: 'Reject Demo',
+      endpoint: `/api/leads/${lead.id}/reject`,
+      enabled: lead.pipeline_status === 'needs_review',
+      disabledReason: lead.pipeline_status === 'needs_review' ? undefined : 'Lead must be in needs_review',
+    },
+    {
       key: 'outreach',
       label: 'Generate Outreach Draft',
       endpoint: `/api/leads/${lead.id}/generate-outreach-draft`,
       enabled: Boolean(lead.pipeline_status === 'approved' && demoSite && !lead.do_not_contact_at),
       disabledReason: outreachDisabledReason(lead.pipeline_status, Boolean(demoSite), Boolean(lead.do_not_contact_at)),
+    },
+    {
+      key: 'mark-reviewed',
+      label: 'Mark Outreach Reviewed',
+      endpoint: outreach ? `/api/outreach-messages/${outreach.id}/mark-reviewed` : '#',
+      enabled: Boolean(outreach?.status === 'draft'),
+      disabledReason: outreach ? outreach.status === 'draft' ? undefined : 'Draft must be editable' : 'Outreach Draft required',
+    },
+    {
+      key: 'send',
+      label: 'Send Outreach',
+      endpoint: outreach ? `/api/outreach-messages/${outreach.id}/send` : '#',
+      enabled: Boolean(outreach?.status === 'reviewed'),
+      disabledReason: outreach ? outreach.status === 'reviewed' ? undefined : 'Review the draft first' : 'Outreach Draft required',
     },
   ]
 

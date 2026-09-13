@@ -40,6 +40,7 @@ export function AiRunControls({ providers, defaultProvider, defaultModel, sugges
       const body = await response.json().catch(() => ({})) as { error?: string; category?: string }
       if (!response.ok) throw new Error(body.error ?? body.category ?? 'Action failed')
       setMessage(`${action.label} succeeded`)
+      window.location.reload()
     } catch (error) {
       setMessage(error instanceof Error ? error.message : `${action.label} failed`)
     } finally {
