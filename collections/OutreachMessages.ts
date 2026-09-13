@@ -17,11 +17,13 @@ export const OutreachMessages: CollectionConfig = {
     { name: 'subject', type: 'text', required: true },
     { name: 'body', type: 'textarea', required: true },
     { name: 'safety_notes', type: 'textarea' },
-    { name: 'status', type: 'select', options: ['draft', 'reviewed', 'sent'], defaultValue: 'draft', required: true },
+    { name: 'status', type: 'select', options: ['draft', 'reviewed', 'sending', 'sent'], defaultValue: 'draft', required: true },
     { name: 'reviewed_at', type: 'date' },
     { name: 'sent_at', type: 'date', admin: { readOnly: true } },
     { name: 'content_revision', type: 'number', defaultValue: 1, admin: { readOnly: true } },
     { name: 'reviewed_fingerprint', type: 'text', admin: { readOnly: true } },
+    { name: 'send_idempotency_key', type: 'text', admin: { readOnly: true } },
+    { name: 'send_claimed_at', type: 'date', admin: { readOnly: true } },
   ],
   hooks: {
     beforeValidate: [({ data, originalDoc }) => {

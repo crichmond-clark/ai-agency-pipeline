@@ -4,6 +4,7 @@ export type SendEmailInput = {
   to: string
   subject: string
   body: string
+  idempotencyKey?: string
 }
 
 export async function sendOutreachEmail(input: SendEmailInput): Promise<{ providerMessageId?: string }> {
@@ -21,7 +22,7 @@ export async function sendOutreachEmail(input: SendEmailInput): Promise<{ provid
     to: input.to,
     subject: input.subject,
     text: input.body,
-  })
+  }, input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : undefined)
 
   if (result.error) throw new Error(result.error.message)
   return { providerMessageId: result.data?.id }
