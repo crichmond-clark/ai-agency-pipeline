@@ -1,12 +1,11 @@
 import config from '@payload-config'
-import type React from 'react'
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { LayoutDashboard } from 'lucide-react'
 import { getPayload, type PayloadRequest } from 'payload'
 
-import { Card, CardContent } from '@/components/ui/card'
 import { LeadDashboardFilters } from '@/components/dashboard/LeadDashboardFilters'
+import { LeadDashboardResults } from '@/components/dashboard/LeadDashboardResults'
 import { buildLeadFilters, dashboardRelatedRecordLimit, indexLatestByLead, leadDashboardHref, parseDashboardPage, type LeadDashboardSearchParams } from '@/lib/lead-dashboard'
 import { ImportLeadsForm } from './ImportLeadsForm'
 
@@ -39,36 +38,7 @@ export default async function DashboardLeadsPage({ searchParams }: { searchParam
       </header>
       <ImportLeadsForm />
       <LeadDashboardFilters params={params} />
-      <Card><CardContent className="p-0">
-      <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-        <thead>
-          <tr>
-            <Header>Business</Header>
-            <Header>City</Header>
-            <Header>Pipeline</Header>
-            <Header>Sales</Header>
-            <Header>Demo approved</Header>
-            <Header>Latest demo</Header>
-            <Header>Latest workflow</Header>
-            <Header>Review</Header>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(({ lead, demoSite, workflowRun }) => (
-            <tr key={lead.id}>
-              <Cell>{lead.business_name}</Cell>
-              <Cell>{lead.city ?? '—'}</Cell>
-              <Cell>{lead.pipeline_status}</Cell>
-              <Cell>{lead.sales_status}</Cell>
-              <Cell>{lead.demo_creation_approved_at ? 'yes' : 'no'}</Cell>
-              <Cell>{demoSite ? <Link href={`/demo/${demoSite.slug}`}>{demoSite.slug}</Link> : '—'}</Cell>
-              <Cell>{workflowRun ? `${workflowRun.operation}: ${workflowRun.status}${workflowRun.error ? ` — ${workflowRun.error}` : ''}` : '—'}</Cell>
-              <Cell><Link href={`/dashboard/review/${lead.id}`}>Review</Link></Cell>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      </CardContent></Card>
+      <LeadDashboardResults portfolioMode={process.env.PORTFOLIO_MODE === 'true'} rows={rows} />
       <nav aria-label="Lead pages" style={{ display: 'flex', gap: 12, marginTop: 20 }}>
         {leads.hasPrevPage ? <Link href={leadDashboardHref(params, page - 1)}>Previous</Link> : null}
         {leads.hasNextPage ? <Link href={leadDashboardHref(params, page + 1)}>Next</Link> : null}
@@ -76,12 +46,4 @@ export default async function DashboardLeadsPage({ searchParams }: { searchParam
       </div>
     </main>
   )
-}
-
-function Header({ children }: { children: React.ReactNode }) {
-  return <th style={{ borderBottom: '1px solid #ddd', padding: 8, textAlign: 'left' }}>{children}</th>
-}
-
-function Cell({ children }: { children: React.ReactNode }) {
-  return <td style={{ borderBottom: '1px solid #eee', padding: 8, verticalAlign: 'top' }}>{children}</td>
 }
