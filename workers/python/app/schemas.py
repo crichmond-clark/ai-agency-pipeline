@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Any
+from typing import Any, Literal
 
 
 class LeadInput(BaseModel):
@@ -90,12 +90,12 @@ class QaRequest(BaseModel):
 
 
 class QaFinding(BaseModel):
-    severity: str
+    severity: Literal["info", "warning", "error"]
     message: str
 
 
 class AiQaReport(BaseModel):
-    status: str
+    status: Literal["passed", "failed"]
     findings: list[QaFinding] = Field(default_factory=list)
     summary: str
 

@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const BusinessProfileSchema = z.object({
   industry: z.string().min(1),
   services: z.array(z.object({ name: z.string().min(1) })).default([]),
-  verified_facts: z.array(z.object({ fact: z.string().min(1), source: z.string().optional() })).default([]),
+  verified_facts: z.array(z.object({ fact: z.string().min(1), source: z.string().nullable().optional() })).default([]),
   assumptions: z.array(z.object({ assumption: z.string().min(1) })).default([]),
   confidence: z.number().min(0).max(1),
   missing_information: z.array(z.object({ item: z.string().min(1) })).default([]),

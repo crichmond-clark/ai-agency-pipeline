@@ -12,7 +12,7 @@ export async function resolveAiSelectionForRequest(payload: Payload, request: Re
   }
 
   try {
-    return resolveAiSelection(payload, task, validateAiSelection(body))
+    return await resolveAiSelection(payload, task, validateAiSelection(body))
   } catch (error) {
     if (error instanceof AiSelectionValidationError) {
       return Response.json({ error: error.message, category: error.code }, { status: 400 })
