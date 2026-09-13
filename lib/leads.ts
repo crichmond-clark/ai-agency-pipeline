@@ -82,7 +82,9 @@ async function findExistingLeadId(payload: Payload, googlePlaceId?: string, norm
     where: { and: [{ normalized_business_name: { equals: normalizedBusinessName } }, { city: { equals: city } }] },
     limit: 1,
   })
-  return result.docs[0]?.id
+  const candidate = result.docs[0]
+  if (googlePlaceId && candidate?.google_place_id && candidate.google_place_id !== googlePlaceId) return undefined
+  return candidate?.id
 }
 
 function pick(row: CsvRow, ...keys: string[]): string {

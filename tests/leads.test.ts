@@ -58,6 +58,15 @@ describe('business finder import', () => {
     expect(payload.leads[0].sales_status).toBe('not_contacted')
   })
 
+  it('does not merge a different place id into a same-name lead', async () => {
+    const payload = fakePayload([{ id: 1, normalized_business_name: 'sample plumbing', city: 'Leeds', google_place_id: 'place-a' }])
+
+    const result = await importBusinessFinderRows(payload as unknown as Payload, [{ business_name: 'Sample Plumbing', city: 'Leeds', google_place_id: 'place-b' }])
+
+    expect(result).toEqual({ created: 1, updated: 0 })
+    expect(payload.leads).toHaveLength(2)
+  })
+
   it('treats exported None values as empty fields', async () => {
     const payload = fakePayload()
 
