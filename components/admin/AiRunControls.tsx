@@ -63,12 +63,12 @@ export function AiRunControls({ providers, defaultProvider, defaultModel, sugges
     <Card>
       <CardContent className="space-y-6 pt-6">
         <WorkflowProgress completed={completedSteps} onSelect={setSelectedStep} selected={selectedStep} steps={workflowSteps} />
-        <section aria-label={`${selectedWorkflowStep.label} actions`} className="rounded-xl border bg-muted/30 p-4">
+        <section aria-label={`${selectedWorkflowStep.label} actions`} className="rounded-xl bg-muted/45 p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold">{selectedWorkflowStep.label}</p><p className="mt-1 text-xs text-muted-foreground">{selectedWorkflowStep.description}</p></div><div className="flex flex-wrap gap-2">{selectedActions.map((action) => { const isBusy = busyAction === action.key; const isDestructive = action.key === 'reject'; return <Button disabled={!action.enabled || Boolean(busyAction)} key={action.key} onClick={() => requestAction(action)} size="sm" title={action.enabled ? action.label : action.disabledReason} type="button" variant={isDestructive ? 'destructive' : action.enabled ? 'default' : 'secondary'}>{isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : action.enabled ? <Play className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}{isBusy ? 'Running…' : action.label}</Button> })}</div></div>
           {selectedActions.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">No actions are available for this stage.</p> : null}
           {selectedActions.every((action) => !action.enabled) ? <div className="mt-3 space-y-1">{selectedActions.map((action) => <p className="text-xs text-muted-foreground" key={action.key}>{action.label}: {action.disabledReason ?? 'Complete'}</p>)}</div> : null}
         </section>
-        <details className="rounded-lg border bg-muted/40 p-4">
+        <details className="rounded-lg bg-muted/35 p-4">
           <summary className="cursor-pointer text-sm font-medium">AI model override</summary>
           <label className="mt-4 flex cursor-pointer items-center gap-3 text-sm font-medium"><input checked={useOverride} className="h-4 w-4 accent-primary" onChange={(event) => setUseOverride(event.target.checked)} type="checkbox" /> Override model for this run</label>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
