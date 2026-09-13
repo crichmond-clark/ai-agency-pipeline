@@ -22,6 +22,8 @@ Detailed implementation planning should happen one phase at a time. This documen
 
 ## 2. Current Baseline
 
+Release-readiness prerequisite (13 September 2026): complete the approved phases of the [Pipeline Review Remediation Plan](pipeline-review-remediation-plan.md) before expanding into RAG. The existing foundations below have remaining workflow/privacy/UI gaps documented in the review; their presence does not imply that the release is ready.
+
 The app already has important production foundations:
 
 - Next.js + Payload CMS as the source-of-truth app.

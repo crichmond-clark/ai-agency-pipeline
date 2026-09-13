@@ -1,5 +1,7 @@
 # Pipeline Hardening Remediation Plan
 
+Status note (13 September 2026): this document records the earlier hardening pass. Follow-up findings and proposed fixes are tracked in the [Pipeline Review Remediation Plan](pipeline-review-remediation-plan.md). Completed checkboxes here do not indicate that the follow-up review passed.
+
 ## Table of Contents
 
 - [1. Problem Statement](#1-problem-statement)

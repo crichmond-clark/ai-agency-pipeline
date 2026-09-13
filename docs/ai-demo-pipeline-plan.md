@@ -1,5 +1,13 @@
 # AI Demo Website Pipeline Plan
 
+## Current release status — 13 September 2026
+
+The original phase checkboxes below record implementation history, not release approval. The [codebase review](codebase-review-2026-09-13.md) identified remaining workflow, privacy, dependency, and UI gaps despite passing baseline tests.
+
+The proposed next work is the [Pipeline Review Remediation Plan](pipeline-review-remediation-plan.md), covering all 13 findings in nine reviewable phases before RAG expansion. It is awaiting approval; no remediation phase is marked complete. The earlier dependency audit note below is historical and must not be used as the current security assessment.
+
+External plan sync is pending because `/mnt/d/docs/miku/Plans` is unavailable in this environment. Sync this file and the companion remediation plan when the mount is restored.
+
 ## Table of Contents
 
 - [1. Problem Statement](#1-problem-statement)
