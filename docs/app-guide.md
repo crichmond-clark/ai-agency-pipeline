@@ -123,6 +123,14 @@ Admin Clicks Send (reviewed → sent via Resend)
     → lead.sales_status → contacted
 ```
 
+## Lead Review Workspace
+
+Open `/dashboard/review/<lead-id>` from the Lead dashboard. The workflow progress bar shows the seven stages from Demo Creation Approval through Send; the highlighted stage is the next decision supported by the current records. Cards below it expose the source Lead Data, Business Profile evidence, Demo Site availability and revision, QA findings, Outreach Draft, and recent Workflow Runs.
+
+Use the action rail on the right (or below the cards on mobile) to run an enabled stage. Disabled actions include the prerequisite that is missing. Rejecting a Demo Site and sending an Outreach Draft require an explicit confirmation. A refreshed page after each successful action is the source of truth for the next available step.
+
+The review workspace uses local shadcn-style primitives in `components/ui` and Tailwind utility classes. New controls should reuse those primitives so focus, hover, disabled, and destructive states remain consistent.
+
 ---
 
 ## AI Provider System
