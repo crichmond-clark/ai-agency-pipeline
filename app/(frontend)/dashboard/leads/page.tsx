@@ -1,12 +1,14 @@
 import config from '@payload-config'
 import Link from 'next/link'
 import { headers } from 'next/headers'
-import { LayoutDashboard } from 'lucide-react'
+import { ChevronLeft, ChevronRight, LayoutDashboard } from 'lucide-react'
 import { getPayload, type PayloadRequest } from 'payload'
 
+import { buttonVariants } from '@/components/ui/button'
 import { LeadDashboardFilters } from '@/components/dashboard/LeadDashboardFilters'
 import { LeadDashboardResults } from '@/components/dashboard/LeadDashboardResults'
 import { buildLeadFilters, dashboardRelatedRecordLimit, indexLatestByLead, leadDashboardHref, parseDashboardPage, type LeadDashboardSearchParams } from '@/lib/lead-dashboard'
+import { cn } from '@/lib/utils'
 import { ImportLeadsForm } from './ImportLeadsForm'
 
 export const dynamic = 'force-dynamic'
@@ -39,9 +41,12 @@ export default async function DashboardLeadsPage({ searchParams }: { searchParam
       <ImportLeadsForm />
       <LeadDashboardFilters params={params} />
       <LeadDashboardResults portfolioMode={process.env.PORTFOLIO_MODE === 'true'} rows={rows} />
-      <nav aria-label="Lead pages" style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-        {leads.hasPrevPage ? <Link href={leadDashboardHref(params, page - 1)}>Previous</Link> : null}
-        {leads.hasNextPage ? <Link href={leadDashboardHref(params, page + 1)}>Next</Link> : null}
+      <nav aria-label="Lead result pages" className="flex flex-col gap-3 rounded-xl border bg-card px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <p aria-live="polite" className="text-sm text-muted-foreground">Page <span className="font-medium text-foreground">{leads.page}</span> of <span className="font-medium text-foreground">{Math.max(leads.totalPages, 1)}</span></p>
+        <div className="flex gap-2">
+          {leads.hasPrevPage ? <Link className={buttonVariants({ variant: 'outline', size: 'sm' })} href={leadDashboardHref(params, page - 1)} rel="prev"><ChevronLeft className="h-4 w-4" /> Previous</Link> : <span aria-disabled="true" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'cursor-not-allowed opacity-50')}><ChevronLeft className="h-4 w-4" /> Previous</span>}
+          {leads.hasNextPage ? <Link className={buttonVariants({ variant: 'outline', size: 'sm' })} href={leadDashboardHref(params, page + 1)} rel="next">Next <ChevronRight className="h-4 w-4" /></Link> : <span aria-disabled="true" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'cursor-not-allowed opacity-50')}>Next <ChevronRight className="h-4 w-4" /></span>}
+        </div>
       </nav>
       </div>
     </main>
