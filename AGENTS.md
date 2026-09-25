@@ -11,7 +11,7 @@
 
 ## Branches and commits
 
-- Do implementation on a dedicated feature branch, not `main`. Use a descriptive branch name, normally `codex/<feature>`; continue an existing task branch only when the user or task explicitly directs it.
+- Do implementation on a dedicated feature branch, not `main`. Name branches `feature/<feature-name>` using a short descriptive kebab-case feature name; continue an existing task branch only when the user or task explicitly directs it.
 - Keep work in small, reviewable, atomic commits. Each commit should represent one coherent logic unit and include the tests or documentation necessary for that unit. Separate unrelated changes; do not split code from its directly related tests.
 - Validate each logic unit before committing. Review the staged diff and stage only files belonging to that unit.
 - Do not commit unless the user has authorized commits for the task. When authorized, make the atomic commits without asking again for each one.
