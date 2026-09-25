@@ -1,41 +1,35 @@
 # AI Agency Pipeline Agent Instructions
 
-## Default workflow
+## Working in this repository
 
-For any planning, implementation, refactor, review, or debugging work in this project, read these first:
+## Before work
 
-1. `CONTEXT.md` — domain language and glossary
-2. `docs/ai-demo-pipeline-plan.md` — implementation roadmap
-3. `docs/adr/*.md` — accepted architecture decisions
+- Read `CONTEXT.md`, `docs/ai-demo-pipeline-plan.md`, and relevant accepted decisions in `docs/adr/` before domain or architecture changes. For a narrowly scoped task, read only the relevant sections/files; do not load every document by default.
+- Inspect the current branch and worktree before changing files. Preserve unrelated changes; never reset, clean, stash, or overwrite user work.
+- Check current project code and tests before proposing replacements. Prefer the smallest complete change that fits existing patterns.
+- Treat the user's current product specification as direction, and reconcile it with implemented behavior and accepted ADRs. Flag a genuine conflict before changing an accepted architectural decision.
 
-Do not ask the user to repeat this instruction. Treat these files as the project source of truth.
+## Branches and commits
 
-## Skill usage
+- Do implementation on a dedicated feature branch, not `main`. Use a descriptive branch name, normally `codex/<feature>`; continue an existing task branch only when the user or task explicitly directs it.
+- Keep work in small, reviewable, atomic commits. Each commit should represent one coherent logic unit and include the tests or documentation necessary for that unit. Separate unrelated changes; do not split code from its directly related tests.
+- Validate each logic unit before committing. Review the staged diff and stage only files belonging to that unit.
+- Do not commit unless the user has authorized commits for the task. When authorized, make the atomic commits without asking again for each one.
+- Do not push, deploy, rewrite shared history, or merge unless explicitly requested.
 
-- Use `planning` before non-trivial features, architecture changes, or multi-file changes.
-- Use `expert-programming` for implementation after a plan/phase is approved.
-- Use `testing` when adding or changing test coverage.
-- Use `code-review` after implementation and before declaring work ready.
-- Use `security-review` for auth, public demo URLs, email sending, PII, API routes, OpenAI calls, and external integrations.
+## Implementation
 
-## Implementation rules
+- Preserve existing safety gates and accepted architecture decisions unless the user approves a change.
+- Keep `CONTEXT.md` domain-focused. Record accepted architecture changes in `docs/adr/` and update the relevant roadmap when scope or decisions change.
+- Do not assume external plan-sync locations are available. Update them only when accessible and requested by project workflow; report unavailable syncs rather than blocking repository work.
+- Make the smallest complete change. Avoid unrelated refactors, speculative abstractions, and new dependencies without a demonstrated need.
+- Validate external and AI-generated input at boundaries. Preserve provenance for business facts and do not treat inferred information as verified.
+- Update or add durable tests for behavior changes, and update relevant user/developer documentation. Do not pin incidental implementation details.
 
-- Follow ADRs unless the user explicitly approves changing one.
-- If implementation conflicts with an ADR, stop and ask before coding.
-- Keep `CONTEXT.md` domain-focused; do not add implementation stack details there.
-- Record new architecture decisions as ADRs in `docs/adr/`.
-- Keep `docs/ai-demo-pipeline-plan.md` updated when decisions change.
-- Sync plan changes to `/mnt/d/docs/miku/Plans/ai-demo-pipeline-plan.md`.
+## Review and verification
 
-## Current architecture decisions
-
-- `business-finder` remains the lead discovery app.
-- This app imports leads from `business-finder` CSV exports.
-- CSV import creates/updates Leads only; it does not generate Business Profiles or demos automatically.
-- No duplicate Leads: use Google `place_id`, falling back to normalized business name + city.
-- Re-importing updates source/import fields only and must not overwrite human workflow fields.
-- Demo creation requires explicit Admin approval before AI generation starts.
-- Payload/Next owns app state, admin workflows, rendering, screenshots, deterministic QA, and Resend email sending.
-- Python FastAPI AI Service owns OpenAI calls for profile generation, demo content, AI QA, and outreach draft copy.
-- AI output is validated twice: Pydantic in Python, Zod in Payload before saving/rendering.
-- Payload combines deterministic QA and AI QA into one saved QA report.
+- For non-trivial implementation, use a subagent to review the completed diff before declaring it ready. Give the reviewer the relevant requirements and ask for concrete correctness, regression, security, and maintainability findings. Resolve findings or state why a finding is not applicable.
+- Delegate bounded independent work only when it materially helps. Keep shared edits under one owner; do not use subagents as a substitute for understanding or testing the change.
+- Use additional security review for public endpoints, authentication/access control, personal data, email delivery, AI/provider integrations, or other external boundaries.
+- Run checks that exercise the changed behavior, plus relevant project checks when warranted. For UI changes, inspect the actual rendered behavior. Report only checks that were run and their observed results.
+- Do not declare completion with known failing checks or unfinished required work. State concrete blockers when a prerequisite is unavailable.
