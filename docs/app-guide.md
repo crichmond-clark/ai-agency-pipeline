@@ -139,6 +139,20 @@ Wide screens use a compact five-column table. Laptop, tablet, and mobile widths 
 
 CSV import remains a manual Admin action. Select a business-finder CSV and choose **Import Leads**; completion or failure is announced in the import Card and the Lead list refreshes after a successful import.
 
+## Askeladd website enquiries
+
+The Askeladd website keeps each `contact-submissions` row and its notification status in the website's Turso database. After persistence, its server sends an authenticated JSON request to the pipeline's `POST /api/integrations/website-enquiries`; only the pipeline server holds Payload access. Website submissions are separate opportunities keyed by immutable submission ID; they are not merged by business name or email. Replays return the existing Lead only when the immutable submission hash matches. A mismatch returns `409`.
+
+Configure `WEBSITE_INGEST_TOKEN` with the same high-entropy secret in both server deployments. Set `PIPELINE_WEBSITE_INGEST_URL` on the website to the pipeline endpoint URL. Keep both values server-only; never add them to browser-prefixed variables. Pipeline unavailability does not prevent website submission storage or acknowledgement. Sync state is tracked separately from notification state and the website's `/api/contact/reconcile` route retries pending/failed records. Configure the website's `CRON_SECRET`, GitHub secret `CONTACT_RECONCILE_CRON_SECRET`, and GitHub variable `CONTACT_RECONCILE_URL` before claiming scheduled retries are active.
+
+Roll out in order: apply the pipeline Postgres migration and deploy the authenticated integration endpoint; then apply the agency site's additive SQLite/Turso migration, configure its server secret and endpoint URL, and deploy the updated contact form. Reconciliation never resends email notifications. Retry failures manually through the authenticated site admin action or invoke the same scheduled workflow. Do not use production credentials or send live enquiry email in local testing.
+
+## Qualification and private content intake
+
+`qualification_status` is an owner assessment independent of demo `pipeline_status` and `sales_status`. A qualified Lead may receive a private one-submission questionnaire before a sale; this does not create a Client or Project and does not approve demo production or outbound marketing. The owner must explicitly confirm sending the invitation. Invitation links expire after seven days, and only a SHA-256 token hash is stored. Client answers are recorded as submitted and unverified; Lead Data and Business Profiles are not overwritten. Accept or reject each section and claim in the review workspace; only accepted facts appear in the exportable structured brief. Missing sections remain missing.
+
+Collection access remains authenticated-admin-only. Public questionnaire access is token-scoped and returns an indistinguishable unavailable response for invalid, expired, used, revoked, or ineligible links. Keep intake content and any client assets private; configure the separate private `INTAKE_R2_BUCKET` before accepting asset uploads, without a public base URL or filesystem fallback. Apply retention and access controls appropriate to contact details, business content, and uploaded documents. An enquiry or intake does not verify a claim or authorize production deployment.
+
 ## UI Surface Hierarchy
 
 Dashboard pages use whitespace, background tone, and elevation for structural hierarchy. Reuse the Card variants consistently:

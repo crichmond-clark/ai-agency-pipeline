@@ -122,9 +122,23 @@ _Avoid_: Business Profile, Demo Site, Outreach Draft
 The generation of desktop and mobile images for a demo site.
 _Avoid_: QA Pass
 
+**Qualification Status**:
+An Admin assessment of whether an enquiry is a suitable opportunity, independent of demo production status.
+Allowed values: `unreviewed`, `qualified`, `not_fit`.
+
+**Client Intake**:
+A private, one-submission content questionnaire provided by a qualified Lead before purchase. Submitted answers and claims remain unverified until an Admin reviews them.
+
+**Submitted Fact**:
+Information supplied by a Lead or intake respondent that has not yet been accepted by an Admin as verified.
+
+**Accepted Intake Fact**:
+A specific intake answer or claim explicitly accepted by an Admin, with reviewer and review time recorded.
+
+
 ## Relationships
 
-- A **Business** may be represented by exactly one **Lead** in the MVP.
+- A **Business** may have exactly one **Lead** from a given import identity, but separate website enquiry submissions may create distinct Leads for owner review.
 - **Lead Data** is the source material for a **Business Profile**.
 - Human-entered or imported business/contact/source fields belong to the **Lead**; AI-interpreted or structured fields belong to the **Business Profile**.
 - A **Lead Source** may produce many **Leads**.
@@ -162,6 +176,9 @@ _Avoid_: QA Pass
 - Only valid outputs create or update **Business Profiles**, **Demo Sites**, and **Outreach Drafts**.
 - **Screenshot Capture** is treated as a workflow step and may run in a local script, server-side function, or later background worker.
 - A **Prospect** becomes a **Customer** after purchase.
+- A Lead's **Qualification Status** is separate from **Pipeline Status** and **Sales Status**; qualification does not approve demo generation or outbound contact.
+- A **Client Intake** belongs to a Lead, is not a Client or Project, and does not imply a sale.
+- A **Submitted Fact** or claim remains pending review; only specifically accepted intake facts are treated as accepted, and missing information remains missing.
 
 ## Example dialogue
 

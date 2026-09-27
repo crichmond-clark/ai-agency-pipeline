@@ -49,6 +49,7 @@ function mapLeadRow(row: CsvRow) {
     website_status: isWebsiteStatus(websiteStatus) ? websiteStatus : 'unknown',
     pipeline_status: 'new' as const,
     sales_status: 'not_contacted' as const,
+    qualification_status: 'unreviewed' as const,
   }
 }
 

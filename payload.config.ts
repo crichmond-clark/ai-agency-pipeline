@@ -5,6 +5,7 @@ import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 
 import { BusinessProfiles } from './collections/BusinessProfiles'
+import { ClientIntakes } from './collections/ClientIntakes'
 import { ContactAttempts } from './collections/ContactAttempts'
 import { DemoSites } from './collections/DemoSites'
 import { Leads } from './collections/Leads'
@@ -24,7 +25,7 @@ export default buildConfig({
     user: Users.slug,
     importMap: { baseDir: path.resolve(dirname) },
   },
-  collections: [Users, Leads, BusinessProfiles, DemoSites, OutreachMessages, OutreachSendOperations, ContactAttempts, WorkflowRuns, Media],
+  collections: [Users, Leads, BusinessProfiles, ClientIntakes, DemoSites, OutreachMessages, OutreachSendOperations, ContactAttempts, WorkflowRuns, Media],
   globals: [AiSettings],
   db: postgresAdapter({ pool: { connectionString: normalizeDatabaseUri(requiredEnv('DATABASE_URI')) } }),
   editor: lexicalEditor(),
